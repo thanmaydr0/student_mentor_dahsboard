@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, Eye, ClipboardCheck, MessageSquare, 
   AlertTriangle, Users, GraduationCap, BookOpen, 
-  ArrowUpDown, ArrowDown, ArrowUp, UserX, Sparkles, X
+  ArrowUpDown, ArrowDown, ArrowUp, UserX, Sparkles, X, FileText
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import AppShell from '../../components/layout/AppShell'
@@ -166,6 +166,14 @@ export default function MentorDashboard() {
   return (
     <AppShell role="mentor">
       <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full pb-10">
+        <div className="flex justify-end">
+          <button
+            onClick={() => navigate('/mentor/results')}
+            className="inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-100"
+          >
+            <FileText size={16} /> Open Result Fetch
+          </button>
+        </div>
         
         {/* Header Section */}
         <div className="flex flex-col gap-4">

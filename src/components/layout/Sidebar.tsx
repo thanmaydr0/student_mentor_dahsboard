@@ -11,6 +11,7 @@ import {
   GraduationCap,
   LogOut,
   X,
+  FileText,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useUnreadCount } from '../../hooks/student/useNotifications'
@@ -38,8 +39,10 @@ const studentNav: NavItem[] = [
 
 const mentorNav: NavItem[] = [
   { label: 'Dashboard', path: '/mentor/dashboard', icon: LayoutDashboard },
+  { label: 'Community', path: '/mentor/community', icon: Users },
   { label: 'Attendance Log', path: '/mentor/attendance', icon: ClipboardCheck },
   { label: 'IAT Marks', path: '/mentor/iat-marks', icon: ClipboardList },
+  { label: 'Result Fetch', path: '/mentor/results', icon: FileText },
   { label: 'Timetable', path: '/mentor/timetable', icon: Calendar },
   { label: 'Profile', path: '/profile', icon: UserCircle },
 ]

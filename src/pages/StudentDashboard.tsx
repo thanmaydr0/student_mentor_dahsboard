@@ -11,6 +11,7 @@ import MarksTable from '../components/student/MarksTable'
 import PredictionWidget from '../components/student/PredictionWidget'
 import TimetableAnalyzer from '../components/student/TimetableAnalyzer'
 import IATMarksCard from '../components/student/IATMarksCard'
+import PerformanceOverview from '../components/student/PerformanceOverview'
 import { seedDemoData } from '../lib/seedDemo'
 
 import { useStudentProfile } from '../hooks/student/useStudentProfile'
@@ -281,6 +282,15 @@ export default function StudentDashboard() {
         {/* 2. Profile Context */}
         <motion.div variants={itemVariants}>
           <ProfileCard profile={profile} loading={profileQuery.isLoading} />
+        </motion.div>
+
+        {/* 2.5 Performance Bar */}
+        <motion.div variants={itemVariants}>
+          <PerformanceOverview 
+            attendance={attendance} 
+            grades={grades} 
+            isLoading={attendanceQuery.isLoading || gradesQuery.isLoading} 
+          />
         </motion.div>
 
         {/* 3. Overview Grid: Attendance & Marks */}
