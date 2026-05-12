@@ -12,6 +12,7 @@ import {
   LogOut,
   X,
   FileText,
+  Library,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useUnreadCount } from '../../hooks/student/useNotifications'
@@ -33,6 +34,7 @@ interface NavItem {
 const studentNav: NavItem[] = [
   { label: 'Dashboard', path: '/student/dashboard', icon: LayoutDashboard },
   { label: 'Timetable', path: '/student/timetable', icon: Calendar },
+  { label: 'Resource Library', path: '/student/library', icon: Library },
   { label: 'Notifications', path: '/student/notifications', icon: Bell, badge: true },
   { label: 'Profile', path: '/profile', icon: UserCircle },
 ]
@@ -43,6 +45,7 @@ const mentorNav: NavItem[] = [
   { label: 'Attendance Log', path: '/mentor/attendance', icon: ClipboardCheck },
   { label: 'IAT Marks', path: '/mentor/iat-marks', icon: ClipboardList },
   { label: 'Result Fetch', path: '/mentor/results', icon: FileText },
+  { label: 'Resource Library', path: '/mentor/library', icon: Library },
   { label: 'Timetable', path: '/mentor/timetable', icon: Calendar },
   { label: 'Profile', path: '/profile', icon: UserCircle },
 ]

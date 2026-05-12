@@ -19,6 +19,7 @@ const TimetableManagePage = lazy(() => import('./pages/mentor/TimetableManagePag
 const IATMarksPage = lazy(() => import('./pages/mentor/IATMarksPage'))
 const ResultFetchPage = lazy(() => import('./pages/mentor/ResultFetchPage'))
 const CommunityPage = lazy(() => import('./pages/mentor/CommunityPage'))
+const ResourceLibraryPage = lazy(() => import('./pages/student/ResourceLibraryPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -58,6 +59,7 @@ export default function App() {
                 <Route path="/student/timetable" element={<TimetablePage />} />
                 <Route path="/student/attendance" element={<AttendancePage />} />
                 <Route path="/student/notifications" element={<NotificationsPage />} />
+                <Route path="/student/library" element={<ResourceLibraryPage />} />
               </Route>
 
               {/* Mentor routes */}
@@ -69,6 +71,7 @@ export default function App() {
                 <Route path="/mentor/iat-marks" element={<IATMarksPage />} />
                 <Route path="/mentor/results" element={<ResultFetchPage />} />
                 <Route path="/mentor/community" element={<CommunityPage />} />
+                <Route path="/mentor/library" element={<ResourceLibraryPage />} />
               </Route>
 
               {/* Shared protected routes (any authenticated user) */}
