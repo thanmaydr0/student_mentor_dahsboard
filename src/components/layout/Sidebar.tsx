@@ -14,6 +14,7 @@ import {
   FileText,
   Library,
   Trophy,
+  CalendarDays,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useUnreadCount } from '../../hooks/student/useNotifications'
@@ -35,6 +36,7 @@ interface NavItem {
 const studentNav: NavItem[] = [
   { label: 'Dashboard', path: '/student/dashboard', icon: LayoutDashboard },
   { label: 'Leaderboard', path: '/student/leaderboard', icon: Trophy },
+  { label: 'Calendar AI', path: '/student/calendar', icon: CalendarDays },
   { label: 'Timetable', path: '/student/timetable', icon: Calendar },
   { label: 'Resource Library', path: '/student/library', icon: Library },
   { label: 'Notifications', path: '/student/notifications', icon: Bell, badge: true },

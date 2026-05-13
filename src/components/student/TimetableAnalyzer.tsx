@@ -4,26 +4,41 @@ import { FileText, Calendar, Sparkles, Loader2, AlertCircle, BookOpen, Clock, Ca
 import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
-// Common Indian academic holidays
+// Holiday categories for grouped dropdown
+const HOLIDAY_CATEGORIES = [
+  { key: 'national', label: 'National Holidays', icon: '🇮🇳', color: '#dc2626' },
+  { key: 'religious', label: 'Religious / Cultural', icon: '🪔', color: '#d97706' },
+  { key: 'regional', label: 'Regional Holidays', icon: '📍', color: '#059669' },
+  { key: 'academic', label: 'Academic Calendar', icon: '🎓', color: '#7c3aed' },
+]
+
+// Common Indian academic holidays with categories and working-day impact
 const COMMON_HOLIDAYS = [
-  { label: 'Republic Day', date: 'Jan 26' },
-  { label: 'Maha Shivaratri', date: 'Feb/Mar' },
-  { label: 'Holi', date: 'Mar' },
-  { label: 'Ugadi / Gudi Padwa', date: 'Mar/Apr' },
-  { label: 'Good Friday', date: 'Mar/Apr' },
-  { label: 'Dr. Ambedkar Jayanti', date: 'Apr 14' },
-  { label: 'May Day', date: 'May 1' },
-  { label: 'Eid ul-Fitr', date: 'Apr/May' },
-  { label: 'Independence Day', date: 'Aug 15' },
-  { label: 'Janmashtami', date: 'Aug/Sep' },
-  { label: 'Ganesh Chaturthi', date: 'Sep' },
-  { label: 'Gandhi Jayanti', date: 'Oct 2' },
-  { label: 'Dussehra / Vijayadashami', date: 'Oct' },
-  { label: 'Diwali', date: 'Oct/Nov' },
-  { label: 'Kannada Rajyotsava', date: 'Nov 1' },
-  { label: 'Christmas', date: 'Dec 25' },
-  { label: 'Midterm / IAT Week', date: 'Varies' },
-  { label: 'End Semester Exams', date: 'Varies' },
+  // National
+  { label: 'Republic Day', date: 'Jan 26', days: 1, category: 'national' },
+  { label: 'Independence Day', date: 'Aug 15', days: 1, category: 'national' },
+  { label: 'Gandhi Jayanti', date: 'Oct 2', days: 1, category: 'national' },
+  { label: 'Dr. Ambedkar Jayanti', date: 'Apr 14', days: 1, category: 'national' },
+  { label: 'May Day', date: 'May 1', days: 1, category: 'national' },
+  // Religious / Cultural
+  { label: 'Maha Shivaratri', date: 'Feb/Mar', days: 1, category: 'religious' },
+  { label: 'Holi', date: 'Mar', days: 2, category: 'religious' },
+  { label: 'Ugadi / Gudi Padwa', date: 'Mar/Apr', days: 1, category: 'religious' },
+  { label: 'Good Friday', date: 'Mar/Apr', days: 1, category: 'religious' },
+  { label: 'Eid ul-Fitr', date: 'Apr/May', days: 1, category: 'religious' },
+  { label: 'Janmashtami', date: 'Aug/Sep', days: 1, category: 'religious' },
+  { label: 'Ganesh Chaturthi', date: 'Sep', days: 2, category: 'religious' },
+  { label: 'Dussehra / Vijayadashami', date: 'Oct', days: 3, category: 'religious' },
+  { label: 'Diwali', date: 'Oct/Nov', days: 5, category: 'religious' },
+  { label: 'Christmas', date: 'Dec 25', days: 1, category: 'religious' },
+  // Regional
+  { label: 'Kannada Rajyotsava', date: 'Nov 1', days: 1, category: 'regional' },
+  // Academic
+  { label: 'Midterm / IAT-1 Week', date: 'Varies', days: 5, category: 'academic' },
+  { label: 'IAT-2 Week', date: 'Varies', days: 5, category: 'academic' },
+  { label: 'End Semester Exams', date: 'Varies', days: 10, category: 'academic' },
+  { label: 'College Fest / Annual Day', date: 'Varies', days: 3, category: 'academic' },
+  { label: 'Study Holidays', date: 'Varies', days: 3, category: 'academic' },
 ]
 
 interface ParsedSubject {
@@ -78,14 +93,18 @@ export default function TimetableAnalyzer() {
     if (selectedHolidays.length > 0) {
       const holidayLines = selectedHolidays.map(label => {
         const found = COMMON_HOLIDAYS.find(h => h.label === label)
-        return found ? `${found.date}: ${found.label} (Holiday)` : `${label} (Holiday)`
+        return found ? `${found.date}: ${found.label} (${found.days} working day${found.days > 1 ? 's' : ''} off)` : `${label} (Holiday)`
       })
-      parts.push(holidayLines.join('\n'))
+      const totalDays = selectedHolidays.reduce((sum, label) => {
+        const h = COMMON_HOLIDAYS.find(x => x.label === label)
+        return sum + (h?.days ?? 1)
+      }, 0)
+      parts.push(`Holidays (${totalDays} total working days off):\n${holidayLines.join('\n')}`)
     }
     if (calendarText.trim()) {
       parts.push(calendarText.trim())
     }
-    return parts.join('\n')
+    return parts.join('\n\n')
   }
 
   const processFile = useCallback(async (file: File): Promise<UploadedFile | null> => {
@@ -342,47 +361,115 @@ export default function TimetableAnalyzer() {
                     <span className={selectedHolidays.length === 0 ? 'text-slate-400' : 'text-slate-700 font-medium'}>
                       {selectedHolidays.length === 0
                         ? 'Select holidays to account for...'
-                        : `${selectedHolidays.length} holiday${selectedHolidays.length > 1 ? 's' : ''} selected`}
+                        : `${selectedHolidays.length} holiday${selectedHolidays.length > 1 ? 's' : ''} selected — ~${selectedHolidays.reduce((sum, label) => {
+                            const h = COMMON_HOLIDAYS.find(x => x.label === label)
+                            return sum + (h?.days ?? 1)
+                          }, 0)} working days off`}
                     </span>
                     <ChevronDown size={16} className={`text-slate-400 transition-transform ${isHolidayDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
-                  {/* Dropdown List */}
+                  {/* Dropdown List — Categorized */}
                   <AnimatePresence>
                     {isHolidayDropdownOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute z-20 mt-1 w-full max-h-52 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg"
-                      >
-                        {COMMON_HOLIDAYS.map(h => {
-                          const isSelected = selectedHolidays.includes(h.label)
-                          return (
-                            <button
-                              key={h.label}
-                              type="button"
-                              onClick={() => toggleHoliday(h.label)}
-                              className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-indigo-50 ${
-                                isSelected ? 'bg-indigo-50/60' : ''
-                              }`}
-                            >
-                              <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
-                                isSelected
-                                  ? 'border-indigo-600 bg-indigo-600 text-white'
-                                  : 'border-slate-300 bg-white'
-                              }`}>
-                                {isSelected && <Check size={10} strokeWidth={3} />}
+                      <>
+                        {/* Click-outside overlay */}
+                        <div className="fixed inset-0 z-10" onClick={() => setIsHolidayDropdownOpen(false)} />
+
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl"
+                        >
+                          {/* Quick Actions */}
+                          <div className="sticky top-0 z-10 flex items-center justify-between bg-slate-50 border-b border-slate-100 px-3 py-2">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                              {selectedHolidays.length}/{COMMON_HOLIDAYS.length} selected
+                            </span>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedHolidays(COMMON_HOLIDAYS.map(h => h.label))}
+                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                              >
+                                Select All
+                              </button>
+                              <span className="text-slate-300">|</span>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedHolidays([])}
+                                className="text-[10px] font-bold text-red-500 hover:text-red-600 transition-colors"
+                              >
+                                Clear All
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Categorized Holiday Groups */}
+                          {HOLIDAY_CATEGORIES.map(cat => {
+                            const catHolidays = COMMON_HOLIDAYS.filter(h => h.category === cat.key)
+                            if (catHolidays.length === 0) return null
+                            const allSelected = catHolidays.every(h => selectedHolidays.includes(h.label))
+                            return (
+                              <div key={cat.key}>
+                                {/* Category Header */}
+                                <div
+                                  className="sticky top-[36px] flex items-center justify-between bg-slate-50/90 backdrop-blur-sm border-b border-slate-100 px-3 py-1.5 cursor-pointer hover:bg-slate-100 transition-colors"
+                                  onClick={() => {
+                                    if (allSelected) {
+                                      setSelectedHolidays(prev => prev.filter(h => !catHolidays.some(ch => ch.label === h)))
+                                    } else {
+                                      setSelectedHolidays(prev => [...new Set([...prev, ...catHolidays.map(h => h.label)])])
+                                    }
+                                  }}
+                                >
+                                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: cat.color }}>
+                                    {cat.icon} {cat.label}
+                                  </span>
+                                  <span className="text-[9px] font-semibold text-slate-400">
+                                    {allSelected ? '✓ all' : `${catHolidays.filter(h => selectedHolidays.includes(h.label)).length}/${catHolidays.length}`}
+                                  </span>
+                                </div>
+                                {/* Holiday Items */}
+                                {catHolidays.map(h => {
+                                  const isSelected = selectedHolidays.includes(h.label)
+                                  return (
+                                    <button
+                                      key={h.label}
+                                      type="button"
+                                      onClick={() => toggleHoliday(h.label)}
+                                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-indigo-50 ${
+                                        isSelected ? 'bg-indigo-50/60' : ''
+                                      }`}
+                                    >
+                                      <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                                        isSelected
+                                          ? 'border-indigo-600 bg-indigo-600 text-white'
+                                          : 'border-slate-300 bg-white'
+                                      }`}>
+                                        {isSelected && <Check size={10} strokeWidth={3} />}
+                                      </div>
+                                      <span className={`flex-1 text-left ${isSelected ? 'font-semibold text-indigo-700' : 'text-slate-700'}`}>
+                                        {h.label}
+                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        {h.days > 1 && (
+                                          <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+                                            {h.days}d off
+                                          </span>
+                                        )}
+                                        <span className="text-xs text-slate-400 font-medium">{h.date}</span>
+                                      </div>
+                                    </button>
+                                  )
+                                })}
                               </div>
-                              <span className={`flex-1 text-left ${isSelected ? 'font-semibold text-indigo-700' : 'text-slate-700'}`}>
-                                {h.label}
-                              </span>
-                              <span className="text-xs text-slate-400 font-medium">{h.date}</span>
-                            </button>
-                          )
-                        })}
-                      </motion.div>
+                            )
+                          })}
+                        </motion.div>
+                      </>
                     )}
                   </AnimatePresence>
                 </div>
@@ -390,21 +477,31 @@ export default function TimetableAnalyzer() {
                 {/* Selected Holiday Chips */}
                 {selectedHolidays.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {selectedHolidays.map(label => (
-                      <span
-                        key={label}
-                        className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700"
-                      >
-                        {label}
-                        <button
-                          type="button"
-                          onClick={() => toggleHoliday(label)}
-                          className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100 transition-colors"
+                    {selectedHolidays.map(label => {
+                      const h = COMMON_HOLIDAYS.find(x => x.label === label)
+                      return (
+                        <span
+                          key={label}
+                          className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700"
                         >
-                          <X size={10} />
-                        </button>
-                      </span>
-                    ))}
+                          {label}
+                          {h && h.days > 1 && <span className="text-[9px] text-indigo-400">({h.days}d)</span>}
+                          <button
+                            type="button"
+                            onClick={() => toggleHoliday(label)}
+                            className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100 transition-colors"
+                          >
+                            <X size={10} />
+                          </button>
+                        </span>
+                      )
+                    })}
+                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-700 border border-amber-200">
+                      ~{selectedHolidays.reduce((sum, label) => {
+                        const h = COMMON_HOLIDAYS.find(x => x.label === label)
+                        return sum + (h?.days ?? 1)
+                      }, 0)} working days affected
+                    </span>
                   </div>
                 )}
 

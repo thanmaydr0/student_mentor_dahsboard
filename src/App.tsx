@@ -21,6 +21,7 @@ const ResultFetchPage = lazy(() => import('./pages/mentor/ResultFetchPage'))
 const CommunityPage = lazy(() => import('./pages/mentor/CommunityPage'))
 const ResourceLibraryPage = lazy(() => import('./pages/student/ResourceLibraryPage'))
 const LeaderboardPage = lazy(() => import('./pages/student/LeaderboardPage'))
+const CalendarParserPage = lazy(() => import('./pages/student/CalendarParserPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -62,6 +63,7 @@ export default function App() {
                 <Route path="/student/notifications" element={<NotificationsPage />} />
                 <Route path="/student/library" element={<ResourceLibraryPage />} />
                 <Route path="/student/leaderboard" element={<LeaderboardPage />} />
+                <Route path="/student/calendar" element={<CalendarParserPage />} />
               </Route>
 
               {/* Mentor routes */}
