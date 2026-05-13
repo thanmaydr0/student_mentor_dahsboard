@@ -25,11 +25,16 @@ export default function PerformanceOverview({ attendance, grades, isLoading }: P
     const failingSubjects = grades.filter(g => (g.grade === 'F' || g.total < 40)).length
     const failPenalty = failingSubjects * 10
 
-    // 4. Composite Score (Mirroring mentor's leaderboard logic)
+    // 4. CGPA Calculation (VTU 10-point scale)
+    const gradePointMap: Record<string, number> = { 'A': 10, 'B': 8, 'C': 6, 'D': 4, 'F': 0 }
+    const totalGradePoints = grades.reduce((sum, g) => sum + (gradePointMap[g.grade] ?? 0), 0)
+    const cgpa = grades.length > 0 ? (totalGradePoints / grades.length) : 0
+
+    // 5. Composite Score (Mirroring mentor's leaderboard logic)
     // Weighted: 40% attendance, 60% marks
     const compositeScore = Math.max(0, Math.min(100, (avgAttendance * 0.4) + (avgScore * 0.6) - failPenalty))
 
-    // 5. Determine Performance Label & Color
+    // 6. Determine Performance Label & Color
     let label = 'Needs Improvement'
     let color = 'from-red-500 to-orange-500'
     let textColor = 'text-red-600'
@@ -61,6 +66,7 @@ export default function PerformanceOverview({ attendance, grades, isLoading }: P
       avgAttendance: Math.round(avgAttendance),
       avgScore: Math.round(avgScore),
       failingSubjects,
+      cgpa: cgpa.toFixed(2),
       label,
       color,
       textColor,
@@ -129,7 +135,15 @@ export default function PerformanceOverview({ attendance, grades, isLoading }: P
         </div>
 
         {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 p-4 border border-indigo-100 transition-all hover:border-indigo-200 hover:shadow-sm">
+            <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">CGPA</p>
+            <div className="flex items-end justify-between">
+              <span className="text-2xl font-black text-indigo-700">{metrics.cgpa}</span>
+              <span className="text-[10px] font-bold text-indigo-400 bg-indigo-100 px-2 py-0.5 rounded-full">/ 10.0</span>
+            </div>
+          </div>
+
           <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100 transition-all hover:border-brand-200">
             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Attendance</p>
             <div className="flex items-end justify-between">

@@ -1,8 +1,30 @@
 import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FileText, Calendar, Sparkles, Loader2, AlertCircle, BookOpen, Clock, CalendarDays, Upload, Image, X, FileUp } from 'lucide-react'
+import { FileText, Calendar, Sparkles, Loader2, AlertCircle, BookOpen, Clock, CalendarDays, Upload, Image, X, FileUp, ChevronDown, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
+
+// Common Indian academic holidays
+const COMMON_HOLIDAYS = [
+  { label: 'Republic Day', date: 'Jan 26' },
+  { label: 'Maha Shivaratri', date: 'Feb/Mar' },
+  { label: 'Holi', date: 'Mar' },
+  { label: 'Ugadi / Gudi Padwa', date: 'Mar/Apr' },
+  { label: 'Good Friday', date: 'Mar/Apr' },
+  { label: 'Dr. Ambedkar Jayanti', date: 'Apr 14' },
+  { label: 'May Day', date: 'May 1' },
+  { label: 'Eid ul-Fitr', date: 'Apr/May' },
+  { label: 'Independence Day', date: 'Aug 15' },
+  { label: 'Janmashtami', date: 'Aug/Sep' },
+  { label: 'Ganesh Chaturthi', date: 'Sep' },
+  { label: 'Gandhi Jayanti', date: 'Oct 2' },
+  { label: 'Dussehra / Vijayadashami', date: 'Oct' },
+  { label: 'Diwali', date: 'Oct/Nov' },
+  { label: 'Kannada Rajyotsava', date: 'Nov 1' },
+  { label: 'Christmas', date: 'Dec 25' },
+  { label: 'Midterm / IAT Week', date: 'Varies' },
+  { label: 'End Semester Exams', date: 'Varies' },
+]
 
 interface ParsedSubject {
   name: string
@@ -35,11 +57,36 @@ const MAX_FILES = 5
 export default function TimetableAnalyzer() {
   const [timetableText, setTimetableText] = useState('')
   const [calendarText, setCalendarText] = useState('')
+  const [selectedHolidays, setSelectedHolidays] = useState<string[]>([])
+  const [isHolidayDropdownOpen, setIsHolidayDropdownOpen] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const holidayDropdownRef = useRef<HTMLDivElement>(null)
+
+  const toggleHoliday = (label: string) => {
+    setSelectedHolidays(prev =>
+      prev.includes(label) ? prev.filter(h => h !== label) : [...prev, label]
+    )
+  }
+
+  // Build the effective calendar text from selected holidays + custom text
+  const getEffectiveCalendarText = () => {
+    const parts: string[] = []
+    if (selectedHolidays.length > 0) {
+      const holidayLines = selectedHolidays.map(label => {
+        const found = COMMON_HOLIDAYS.find(h => h.label === label)
+        return found ? `${found.date}: ${found.label} (Holiday)` : `${label} (Holiday)`
+      })
+      parts.push(holidayLines.join('\n'))
+    }
+    if (calendarText.trim()) {
+      parts.push(calendarText.trim())
+    }
+    return parts.join('\n')
+  }
 
   const processFile = useCallback(async (file: File): Promise<UploadedFile | null> => {
     if (file.size > 10 * 1024 * 1024) {
@@ -154,7 +201,7 @@ export default function TimetableAnalyzer() {
           },
           body: JSON.stringify({
             timetable_text: combinedText || undefined,
-            calendar_text: calendarText || undefined,
+            calendar_text: getEffectiveCalendarText() || undefined,
             images: imagePayloads.length > 0 ? imagePayloads : undefined,
           }),
         }
@@ -282,13 +329,91 @@ export default function TimetableAnalyzer() {
               <div>
                 <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
                   <Calendar size={16} className="text-slate-400" />
-                  Paste Academic Calendar / Holidays (Optional)
+                  Holidays & Academic Calendar (Optional)
                 </label>
+
+                {/* Dropdown Toggle */}
+                <div ref={holidayDropdownRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsHolidayDropdownOpen(prev => !prev)}
+                    className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm text-slate-700 hover:border-indigo-300 transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  >
+                    <span className={selectedHolidays.length === 0 ? 'text-slate-400' : 'text-slate-700 font-medium'}>
+                      {selectedHolidays.length === 0
+                        ? 'Select holidays to account for...'
+                        : `${selectedHolidays.length} holiday${selectedHolidays.length > 1 ? 's' : ''} selected`}
+                    </span>
+                    <ChevronDown size={16} className={`text-slate-400 transition-transform ${isHolidayDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Dropdown List */}
+                  <AnimatePresence>
+                    {isHolidayDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute z-20 mt-1 w-full max-h-52 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg"
+                      >
+                        {COMMON_HOLIDAYS.map(h => {
+                          const isSelected = selectedHolidays.includes(h.label)
+                          return (
+                            <button
+                              key={h.label}
+                              type="button"
+                              onClick={() => toggleHoliday(h.label)}
+                              className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-indigo-50 ${
+                                isSelected ? 'bg-indigo-50/60' : ''
+                              }`}
+                            >
+                              <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                                isSelected
+                                  ? 'border-indigo-600 bg-indigo-600 text-white'
+                                  : 'border-slate-300 bg-white'
+                              }`}>
+                                {isSelected && <Check size={10} strokeWidth={3} />}
+                              </div>
+                              <span className={`flex-1 text-left ${isSelected ? 'font-semibold text-indigo-700' : 'text-slate-700'}`}>
+                                {h.label}
+                              </span>
+                              <span className="text-xs text-slate-400 font-medium">{h.date}</span>
+                            </button>
+                          )
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Selected Holiday Chips */}
+                {selectedHolidays.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {selectedHolidays.map(label => (
+                      <span
+                        key={label}
+                        className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700"
+                      >
+                        {label}
+                        <button
+                          type="button"
+                          onClick={() => toggleHoliday(label)}
+                          className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100 transition-colors"
+                        >
+                          <X size={10} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Custom extras textarea */}
                 <textarea
                   value={calendarText}
                   onChange={(e) => setCalendarText(e.target.value)}
-                  placeholder="e.g. Oct 2: Gandhi Jayanti (Holiday), Oct 15-20: Midterms..."
-                  className="w-full min-h-[70px] rounded-xl border border-slate-200 bg-slate-50/50 p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-y"
+                  placeholder="Add any custom dates: e.g. Oct 15-20: Midterms, Nov 5: College Fest..."
+                  className="mt-2 w-full min-h-[50px] rounded-xl border border-slate-200 bg-slate-50/50 p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-y"
                 />
               </div>
             </div>

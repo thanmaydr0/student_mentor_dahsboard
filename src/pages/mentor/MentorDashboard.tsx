@@ -27,9 +27,27 @@ function RiskBadge({ level }: { level: string | null }) {
   return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">Low</span>
 }
 
-type SortField = 'full_name' | 'branch' | 'semester' | 'avg_attendance' | 'avg_total_score' | 'failing_subjects' | 'risk_level'
+type SortField = 'full_name' | 'branch' | 'semester' | 'avg_attendance' | 'avg_total_score' | 'cgpa' | 'failing_subjects' | 'risk_level'
 type SortOrder = 'asc' | 'desc'
 const riskWeight: Record<string, number> = { High: 3, Medium: 2, Low: 1 }
+
+// VTU 10-point CGPA from avg score (0-100)
+function scoreToCGPA(avgScore: number | null | undefined): string {
+  if (avgScore == null) return '-'
+  if (avgScore >= 85) return '10.00'
+  if (avgScore >= 70) return '8.00'
+  if (avgScore >= 55) return '6.00'
+  if (avgScore >= 40) return '4.00'
+  return '0.00'
+}
+function scoreToCGPANum(avgScore: number | null | undefined): number {
+  if (avgScore == null) return 0
+  if (avgScore >= 85) return 10
+  if (avgScore >= 70) return 8
+  if (avgScore >= 55) return 6
+  if (avgScore >= 40) return 4
+  return 0
+}
 
 export default function MentorDashboard() {
   const { user } = useAuth()
@@ -149,7 +167,7 @@ export default function MentorDashboard() {
 
   // Aggregated Stats
   const stats = useMemo(() => {
-    if (!cohortData || cohortData.length === 0) return { total: 0, highRisk: 0, avgAtt: 0, avgScore: 0 }
+    if (!cohortData || cohortData.length === 0) return { total: 0, highRisk: 0, avgAtt: 0, avgScore: 0, avgCGPA: '0.00' }
     
     const total = cohortData.length
     const highRisk = cohortData.filter((s: any) => s.risk_level === 'High').length
@@ -160,7 +178,11 @@ export default function MentorDashboard() {
     const validScores = cohortData.filter((s: any) => s.avg_total_score != null)
     const avgScore = validScores.length ? validScores.reduce((sum: number, s: any) => sum + Number(s.avg_total_score), 0) / validScores.length : 0
 
-    return { total, highRisk, avgAtt: Math.round(avgAtt), avgScore: Math.round(avgScore) }
+    const avgCGPA = validScores.length 
+      ? (validScores.reduce((sum: number, s: any) => sum + scoreToCGPANum(Number(s.avg_total_score)), 0) / validScores.length).toFixed(2)
+      : '0.00'
+
+    return { total, highRisk, avgAtt: Math.round(avgAtt), avgScore: Math.round(avgScore), avgCGPA }
   }, [cohortData])
 
   return (
@@ -262,8 +284,11 @@ export default function MentorDashboard() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-start">
                <div>
-                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Score</p>
-                 <p className="text-3xl font-bold text-slate-900 mt-2">{isLoading ? '-' : stats.avgScore}</p>
+                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg CGPA</p>
+                 <div className="flex items-baseline gap-1 mt-2">
+                   <p className="text-3xl font-bold text-slate-900">{isLoading ? '-' : stats.avgCGPA}</p>
+                   <span className="text-xs font-semibold text-slate-400">/ 10</span>
+                 </div>
                </div>
                <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><GraduationCap size={20} /></div>
             </div>
@@ -327,6 +352,9 @@ export default function MentorDashboard() {
                    <th className="px-6 py-4 cursor-pointer group hover:bg-slate-100 transition hidden md:table-cell" onClick={() => handleSort('avg_total_score')}>
                      <div className="flex items-center gap-2">Avg Score <RenderSortIcon field="avg_total_score" /></div>
                    </th>
+                   <th className="px-6 py-4 cursor-pointer group hover:bg-slate-100 transition" onClick={() => handleSort('avg_total_score')}>
+                     <div className="flex items-center gap-2">CGPA <RenderSortIcon field="avg_total_score" /></div>
+                   </th>
                    <th className="px-6 py-4 cursor-pointer group hover:bg-slate-100 transition" onClick={() => handleSort('failing_subjects')}>
                      <div className="flex items-center gap-2">Failing <RenderSortIcon field="failing_subjects" /></div>
                    </th>
@@ -344,6 +372,7 @@ export default function MentorDashboard() {
                        <td className="px-6 py-4 hidden sm:table-cell"><Skeleton className="h-5 w-24 rounded" /></td>
                        <td className="px-6 py-4"><Skeleton className="h-5 w-16 rounded" /></td>
                        <td className="px-6 py-4 hidden md:table-cell"><Skeleton className="h-5 w-12 rounded" /></td>
+                       <td className="px-6 py-4"><Skeleton className="h-5 w-12 rounded" /></td>
                        <td className="px-6 py-4"><Skeleton className="h-5 w-10 rounded" /></td>
                        <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
                        <td className="px-6 py-4"><div className="flex justify-end gap-2"><Skeleton className="h-8 w-8 rounded-full" /><Skeleton className="h-8 w-8 rounded-full" /></div></td>
@@ -351,7 +380,7 @@ export default function MentorDashboard() {
                    ))
                  ) : filteredAndSortedData.length === 0 ? (
                    <tr>
-                     <td colSpan={7} className="px-6 py-10 text-center">
+                     <td colSpan={8} className="px-6 py-10 text-center">
                         <Users size={32} className="mx-auto text-slate-300 mb-2" />
                         <p className="text-slate-600 font-medium">No students match your filters</p>
                         <p className="text-sm text-slate-400 mt-1">Try clearing your search or semester filters.</p>
@@ -395,6 +424,11 @@ export default function MentorDashboard() {
                           </td>
                           <td className="px-6 py-4 font-medium text-slate-700 hidden md:table-cell">
                              {student.avg_total_score ?? '-'}
+                          </td>
+                          <td className="px-6 py-4">
+                             <span className="font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg text-sm">
+                               {scoreToCGPA(student.avg_total_score)}
+                             </span>
                           </td>
                           <td className="px-6 py-4 font-bold">
                              <span className={student.failing_subjects > 0 ? "text-red-500 bg-red-50 px-2 py-0.5 rounded" : "text-slate-400"}>
