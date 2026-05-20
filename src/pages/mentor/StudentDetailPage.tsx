@@ -6,6 +6,7 @@ import {
   MessageSquare, UserPlus, FileText, AlertTriangle 
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../lib/supabase'
 import AppShell from '../../components/layout/AppShell'
 import { useStudentDetail } from '../../hooks/mentor/useStudentDetail'
 import { useUpdateGrades } from '../../hooks/mentor/useUpdateGrades'
@@ -174,6 +175,24 @@ export default function StudentDetailPage() {
                 className="flex items-center gap-1.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 px-3 py-1 rounded-lg shadow-sm transition-colors"
               >
                 <MessageSquare size={16} className="text-brand-200" /> Message
+              </button>
+              <button 
+                onClick={async () => {
+                   if (!id || !user) return;
+                   toast.loading("Generating parent code...", { id: 'code_gen' });
+                   try {
+                     const { data, error } = await supabase.rpc('generate_parent_code', { p_student_id: id, p_mentor_id: user.id });
+                     if (error) throw error;
+                     toast.success(`Generated Code: ${data}`, { id: 'code_gen', duration: 10000 });
+                     // Show in an alert so it can be copied easily
+                     alert(`Give this code to the parent: ${data}\n\nThey should send "/start ${data}" to the Telegram bot.`);
+                   } catch (e) {
+                     toast.error("Failed to generate code.", { id: 'code_gen' });
+                   }
+                }} 
+                className="flex items-center gap-1.5 text-sm font-bold text-slate-600 border border-slate-200 px-3 py-1 bg-white hover:bg-slate-50 rounded-lg shadow-sm transition-colors"
+              >
+                <UserPlus size={16} className="text-slate-500" /> Parent Code
               </button>
             </div>
             <div className="flex items-center gap-4">

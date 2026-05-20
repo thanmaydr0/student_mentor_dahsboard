@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { User, Mail, BookOpen, Hash, UserCircle, Save, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -244,8 +244,129 @@ export default function ProfilePage() {
             </div>
           </Card>
         </motion.div>
+
+        {/* ERP Credentials Card (Student Only) */}
+        {role === 'student' && (
+          <motion.div variants={itemVariants}>
+            <ErpCredentialsSection userId={user?.id} />
+          </motion.div>
+        )}
       </motion.div>
     </AppShell>
+  )
+}
+
+function ErpCredentialsSection({ userId }: { userId: string | undefined }) {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [hasCreds, setHasCreds] = useState(false)
+  
+  useEffect(() => {
+    if (userId) {
+      supabase.from('erp_credentials').select('username, password').eq('student_id', userId).single()
+        .then(({ data }) => {
+          if (data) {
+            setUsername(data.username)
+            setPassword(data.password)
+            setHasCreds(true)
+          }
+        })
+    }
+  }, [userId])
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!userId) return
+    setSaving(true)
+    try {
+      const { error } = await supabase.from('erp_credentials').upsert({
+        student_id: userId,
+        username,
+        password
+      }, { onConflict: 'student_id' })
+      if (error) throw error
+      toast.success('ERP Credentials saved securely')
+      setHasCreds(true)
+      setIsEditing(false)
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save credentials')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <Card title="ERP Integration">
+      <div className="mt-2">
+        <p className="text-sm text-brand-500 mb-4">
+          Connect your college ERP account to automatically sync your attendance. Your credentials are encrypted and only accessible by you.
+        </p>
+        
+        {!isEditing && hasCreds ? (
+          <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="text-green-600" size={20} />
+              <div>
+                <p className="text-sm font-semibold text-green-800">ERP Connected</p>
+                <p className="text-xs text-green-700">Username: {username}</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="text-sm font-semibold text-brand-600 hover:text-brand-800"
+            >
+              Update
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSave} className="flex flex-col gap-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-brand-400">
+                ERP Login (Email/ID)
+              </label>
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-lg border border-brand-200 bg-white px-4 py-2.5 text-sm text-brand-900 shadow-sm transition focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-brand-400">
+                ERP Password
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-brand-200 bg-white px-4 py-2.5 text-sm text-brand-900 shadow-sm transition focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+            </div>
+            <div className="flex gap-3 mt-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex items-center gap-2 rounded-lg bg-brand-800 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save Credentials'}
+              </button>
+              {hasCreds && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="rounded-lg border border-brand-200 px-5 py-2.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+      </div>
+    </Card>
   )
 }
 

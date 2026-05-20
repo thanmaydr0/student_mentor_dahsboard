@@ -344,7 +344,7 @@ async function solveCaptchaWithAI(imageBase64: string, mimeType: string): Promis
 // ── Single Attempt (one session) ─────────────────────────────────────────────
 // All steps use the SAME cookies so the captcha stays valid.
 
-async function attemptFetch(normalizedUsn: string, manualCaptcha?: string): Promise<{
+async function attemptFetch(normalizedUsn: string, baseUrl: string, manualCaptcha?: string): Promise<{
   ok: boolean
   html: string
   summary: ResultSummary
@@ -357,7 +357,7 @@ async function attemptFetch(normalizedUsn: string, manualCaptcha?: string): Prom
   }
 
   // 1. Fetch the VTU form page → get token + session cookie
-  const initialRes = await vtuFetch(BASE_URL, { headers: commonHeaders })
+  const initialRes = await vtuFetch(baseUrl, { headers: commonHeaders })
   if (!initialRes.ok) throw new Error(`Failed to load VTU form (${initialRes.status})`)
 
   const initialHtml = await initialRes.text()
@@ -382,12 +382,12 @@ async function attemptFetch(normalizedUsn: string, manualCaptcha?: string): Prom
       )
     }
 
-    const captchaFullUrl = new URL(captchaRelUrl, BASE_URL).toString()
+    const captchaFullUrl = new URL(captchaRelUrl, baseUrl).toString()
 
     // Download captcha image with the SAME session cookie
     const captchaHeaders: Record<string, string> = {
       ...commonHeaders,
-      'referer': BASE_URL,
+      'referer': baseUrl,
     }
     if (sessionCookie) captchaHeaders['cookie'] = sessionCookie
 
@@ -418,8 +418,8 @@ async function attemptFetch(normalizedUsn: string, manualCaptcha?: string): Prom
     'content-type': 'application/x-www-form-urlencoded',
     'user-agent': UA,
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'origin': BASE_URL.replace(/\/$/, ''),
-    'referer': BASE_URL,
+    'origin': baseUrl.replace(/\/$/, ''),
+    'referer': baseUrl,
   }
   if (sessionCookie) submitHeaders['cookie'] = sessionCookie
 
@@ -429,7 +429,7 @@ async function attemptFetch(normalizedUsn: string, manualCaptcha?: string): Prom
     captchacode: captchaText,
   })
 
-  const resultRes = await vtuFetch(new URL('resultpage.php', BASE_URL).toString(), {
+  const resultRes = await vtuFetch(new URL('resultpage.php', baseUrl).toString(), {
     method: 'POST',
     headers: submitHeaders,
     body,
@@ -473,7 +473,7 @@ serve(async (req) => {
   }
 
   try {
-    const { usn, captcha } = await req.json()
+    const { usn, captcha, resultUrl } = await req.json()
 
     if (!usn || typeof usn !== 'string') {
       throw new Error('USN is required')
@@ -481,6 +481,16 @@ serve(async (req) => {
 
     const normalizedUsn = usn.trim().toUpperCase()
     const manualCaptcha = captcha && typeof captcha === 'string' ? captcha.trim() : undefined
+    // Allow caller to specify which VTU result URL to scrape (for multi-semester support)
+    // Strip trailing filenames like index.php so URL resolution of resultpage.php works correctly
+    let effectiveBaseUrl = BASE_URL
+    if (resultUrl && typeof resultUrl === 'string') {
+      let cleaned = resultUrl.trim()
+      // Remove trailing filename (e.g. index.php) to get just the directory
+      cleaned = cleaned.replace(/\/[^\/]*\.[a-z]+$/i, '/')
+      if (!cleaned.endsWith('/')) cleaned += '/'
+      effectiveBaseUrl = cleaned
+    }
 
     // Retry loop — each attempt starts a fresh VTU session so the captcha
     // image and session cookie are always in sync.
@@ -488,7 +498,7 @@ serve(async (req) => {
     const maxAttempts = manualCaptcha ? 1 : MAX_CAPTCHA_RETRIES
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      lastResult = await attemptFetch(normalizedUsn, manualCaptcha)
+      lastResult = await attemptFetch(normalizedUsn, effectiveBaseUrl, manualCaptcha)
 
       if (lastResult.ok) {
         return new Response(JSON.stringify({

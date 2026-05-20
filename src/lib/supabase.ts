@@ -17,9 +17,9 @@ export const supabase = createClient<Database>(url, key, {
       // (e.g., when auth token refresh is stuck)
       const controller = new AbortController()
       const timeoutId = setTimeout(() => {
-        console.warn('[Supabase] Fetch timeout (12s):', typeof input === 'string' ? input.split('?')[0] : input)
+        console.warn('[Supabase] Fetch timeout (120s):', typeof input === 'string' ? input.split('?')[0] : input)
         controller.abort()
-      }, 12000)
+      }, 120000)
 
       // Merge the abort signal with any existing signal
       const existingSignal = init?.signal

@@ -20,7 +20,7 @@ interface MessageComposerProps {
 }
 
 type Goal = 'attendance_warning' | 'attendance_encouragement' | 'exam_reminder' | 'parent_notification' | 'positive_reinforcement' | 'intervention_followup'
-type Channel = 'email' | 'sms' | 'letter'
+type Channel = 'email' | 'sms' | 'letter' | 'telegram'
 type Tone = 'formal' | 'warm' | 'urgent'
 
 interface GeneratedMessage {
@@ -101,7 +101,7 @@ Most Recenet Intervention Found: ${recentIntervention}`
 
       let lengthConstraint = ""
       if (channel === 'email') lengthConstraint = "Strictly 200 to 350 words per message."
-      else if (channel === 'sms') lengthConstraint = "Strictly exactly less than 160 characters (Short, punchy)."
+      else if (channel === 'sms' || channel === 'telegram') lengthConstraint = "Strictly exactly less than 160 characters (Short, punchy)."
       else if (channel === 'letter') lengthConstraint = "Strictly 400 to 600 words formal letter length."
 
       const systemPrompt = `You are an expert Academic Advisor AI Assistant writing targeted, personalized communications natively on behalf of a Mentor explicitly tailored for a cohort context. 
@@ -243,6 +243,26 @@ Most Recenet Intervention Found: ${recentIntervention}`
        await Promise.all(promises)
        toast.success("Interventions automatically logged!")
     }
+
+    // Send Telegram messages if selected
+    if (channel === 'telegram' && messages.length > 0) {
+       const sendPromises = messages.map(async m => {
+          try {
+             await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/telegram-bot`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                   action: 'send_message',
+                   to_student_id: m.student_id,
+                   message_body: `📢 <b>Message from Mentor:</b>\n\n${m.subject_line ? `<b>${m.subject_line}</b>\n\n` : ''}${m.body}`
+                })
+             })
+          } catch(e) { console.error('Failed to send telegram message to', m.student_id, e) }
+       });
+       await Promise.all(sendPromises);
+       toast.success("Telegram messages dispatched to parents!");
+    }
+
     onClose()
   }
 
@@ -320,6 +340,7 @@ Most Recenet Intervention Found: ${recentIntervention}`
                      <select value={channel} onChange={(e) => setChannel(e.target.value as Channel)} className="w-full appearance-none rounded-xl border-slate-200 bg-white py-2.5 pl-4 pr-10 text-sm font-semibold focus:border-brand-500 focus:ring-brand-500 shadow-sm cursor-pointer">
                        <option value="email">Email (~250 words)</option>
                        <option value="sms">SMS (&lt;160 chars)</option>
+                       <option value="telegram">Telegram Bot</option>
                        <option value="letter">Formal Letter (~500 words)</option>
                      </select>
                      <ChevronDown size={16} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />

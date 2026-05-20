@@ -171,6 +171,50 @@ export interface Database {
           created_at?: string
         }
       }
+      iat_marks: {
+        Row: {
+          id: string
+          student_id: string
+          class_id: string
+          iat1: number | null
+          iat2: number | null
+          lab_iat1: number | null
+          lab_iat2: number | null
+          assignment1: number | null
+          assignment2: number | null
+          remarks: string | null
+          updated_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          class_id: string
+          iat1?: number | null
+          iat2?: number | null
+          lab_iat1?: number | null
+          lab_iat2?: number | null
+          assignment1?: number | null
+          assignment2?: number | null
+          remarks?: string | null
+          updated_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          class_id?: string
+          iat1?: number | null
+          iat2?: number | null
+          lab_iat1?: number | null
+          lab_iat2?: number | null
+          assignment1?: number | null
+          assignment2?: number | null
+          remarks?: string | null
+          updated_at?: string
+          created_at?: string
+        }
+      }
       timetables: {
         Row: {
           id: string
@@ -246,6 +290,67 @@ export interface Database {
           user_id?: string
           message_id?: string
           is_read?: boolean
+          created_at?: string
+        }
+      }
+      telegram_sessions: {
+        Row: {
+          id: string
+          telegram_chat_id: number
+          user_id: string | null
+          role: 'student' | 'mentor' | 'parent' | null
+          linked_student_id: string | null
+          state: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          telegram_chat_id: number
+          user_id?: string | null
+          role?: 'student' | 'mentor' | 'parent' | null
+          linked_student_id?: string | null
+          state?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          telegram_chat_id?: number
+          user_id?: string | null
+          role?: 'student' | 'mentor' | 'parent' | null
+          linked_student_id?: string | null
+          state?: string
+          created_at?: string
+        }
+      }
+      parent_access_codes: {
+        Row: {
+          id: string
+          code: string
+          student_id: string
+          mentor_id: string
+          used: boolean
+          used_by_chat_id: number | null
+          expires_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          student_id: string
+          mentor_id: string
+          used?: boolean
+          used_by_chat_id?: number | null
+          expires_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string
+          student_id?: string
+          mentor_id?: string
+          used?: boolean
+          used_by_chat_id?: number | null
+          expires_at?: string
           created_at?: string
         }
       }

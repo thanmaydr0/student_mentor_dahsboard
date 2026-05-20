@@ -1,0 +1,3369 @@
+<!DOCTYPE html><html style="--chat-header-background-color: #095899; --chat-header-color: #fff;"><head>
+<title>Student Home</title>
+
+
+
+
+<script type="text/javascript" src="studentMPW/js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="studentMPW/js/bootstrap.js"></script>
+<script type="text/javascript" src="js/jquery.alerts.js"></script>
+<link rel="stylesheet" type="text/css" href="studentMPW/css/jquery.fancybox.css">
+<script type="text/javascript" src="studentMPW/js/jquery.fancybox.pack.js"></script>
+<script type="text/javascript" src="studentMPW/js/jquery.fancybox-media.js"></script>
+
+<script type="text/javascript" src="js/react/moment.js"></script>	
+
+ 		<script type="text/javascript" src="js/react/react.production.min.js"></script>
+		<script type="text/javascript" src="js/react/react-dom.production.min.js"></script>
+
+
+<script type="text/javascript" src="/scriptReactCompiled/commonJs/commonReactComponent.js"></script>
+
+<link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+	<!-- <script type="text/javascript">
+	/* function startCommonAjaxSpinner(){
+		try{
+			$.fancybox.showLoading();
+		}catch(e){
+			
+		}
+	}
+	function stopCommonAjaxSpinner(){
+		try{
+			$.fancybox.hideLoading();
+		}catch(e){
+			
+		}
+	} */
+</script> -->	
+	<script type="text/javascript">
+	var ajaxRequestCount = 0;
+	var ModalCount = 1;
+	var isTest;
+	
+	$(document).ready(function(){ 
+		isTest=$("#productionServer").val();
+		//alert("isTest...."+isTest);
+		if(isTest!="true"){	
+			$('#spinner').modal({ backdrop: 'static', keyboard: false }); 
+			$('#spinner').show();
+		}
+	});
+	function startCommonAjaxSpinner(){
+		try{
+			ajaxRequestCount++;
+			if (ModalCount <= 0) {
+				if(isTest!="true"){	
+					$('#spinner').modal('show'); 
+				}else{
+					$.fancybox.showLoading();
+				}
+				ModalCount++;
+			}
+				
+		//$('#spinner').show();
+		//$.fancybox.showLoading();
+		}catch(e){
+				
+		}
+	}
+	function stopCommonAjaxSpinner(){
+		try{
+			if (ajaxRequestCount >= 1) {
+				setTimeout(function() {
+					if(isTest!="true"){	
+						$('#spinner').modal('hide');
+					}else{
+						$.fancybox.hideLoading();
+					}
+				}, 1000);
+				ModalCount--;
+			}
+			ajaxRequestCount--;
+			//$('#spinner').modal('hide');
+			//$('#spinner').hide();
+			//$.fancybox.hideLoading();
+		}catch(e){
+			
+		}
+}
+	String.prototype.gemsDecode = function () {//Kiran Badave - Ticket No : #896167
+		var dval = this;
+		try{
+			if (dval!=null && dval!=undefined && dval.toString().indexOf("%") != -1) {
+				for(var i=0;i<5;i++){
+	            	if(dval.indexOf('%')!=-1){
+	                	try{dval = decodeURIComponent(dval.toString());}catch(e){}
+	                }else{break;}
+	            }  
+			}
+			return dval.toString();
+		}catch(e){ return this; }
+	};
+	String.prototype.gemsEncode = function (count) {
+		//Regex to check Basic Latin unicodes, Except any other unicode this will encode
+		var regxPattCommonLang = /^([a-zA-Z0-9$@$!%*?&#^-_. +,<>\'\"`~()-/\\;:|{}[\]=\n\t]{0,})$/g;
+		var data = this;
+			try{
+				if(data.toString().match(regxPattCommonLang)==null){
+					data = (encodeURIComponent(data));
+					if(count!=undefined){
+						for(var i=1;i<count;i++){
+							data = (encodeURIComponent(data));
+						}
+					}
+				}
+			}catch(e){ data = this; }
+		return data;
+	};
+	
+	String.prototype.setIndexedArgs = function(){
+		/* 	auth: Kiran Badave, Use: Replce args with indexed {0} values
+			Example: 	From Validator.properties -- errors.maxlength={0} can not be greater than {1} characters.
+						alert(juno.label["errors.maxlength"].setIndexedArgs("Address", "50"));
+			Output: 	Address can not be greater than 50 characters.*/
+			try{var str = this;for(var i in arguments){str = str.replace('{'+i+'}', arguments[i]);}return str;}catch(e){return this;}
+		};
+</script>
+
+<style>
+.spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-left: -40px; /* half width of the spinner gif */
+    margin-top: -40px; /* half height of the spinner gif */
+    width: 80px;
+    height: 80px;
+    text-align:center;
+    z-index:1234;
+}
+
+.flipper {
+    
+    -webkit-animation: rotation 1s linear infinite;
+    -moz-animation: rotation 1s linear infinite;
+    -ms-animation: rotation 1s linear infinite;
+}
+
+@-webkit-keyframes rotation {
+    0%   { -webkit-transform: rotateY(0deg); }
+    50% { -webkit-transform: rotateY(90deg); }
+}
+@-moz-keyframes rotation {
+    0%   { -moz-transform: rotateY(0deg); }
+    50% { -moz-transform: rotateY(90deg); }
+}
+@-ms-keyframes rotation {
+    0%   { -ms-transform: rotateY(0deg); }
+    50% { -ms-transform: rotateY(90deg); }
+}
+</style>
+<!-- <div id="spinner" class="modal hide spinner" style="overflow: hidden;top: 80%;left: 70%;">
+	<div class="modal-body" style="padding: 0px;">
+		<object data="images/gemsSpinner.svg" type="image/svg+xml">
+	 			<img alt="loading" src="images/gemsSpinner.svg">
+		</object>
+	</div>
+</div>   -->
+
+
+				<script type="text/javascript" src="js/jquery.youtube.player.min.js"></script><script type="text/javascript" src="js/swfobject.js"></script><link rel="stylesheet" type="text/css" href="css/youtube-player.css"><script type="text/javascript" src="https://erp.cmrit.ac.in/ckeditor/config.js?t=B8DJ5M3"></script><style id="cke_ui_color" type="text/css"></style><link rel="stylesheet" type="text/css" href="https://erp.cmrit.ac.in/ckeditor/skins/kama/editor.css?t=B8DJ5M3"><script type="text/javascript" src="https://erp.cmrit.ac.in/ckeditor/lang/en.js?t=B8DJ5M3"></script><style title="ddsmoothmenushadowsnone" type="text/css">.ddsmoothmenushadowsnone{display:none!important;}</style><script type="text/javascript" src="https://erp.cmrit.ac.in/ckeditor/plugins/equation/plugin.js?t=B8DJ5M3"></script>
+<style type="text/css">
+#global-nav-id ul li a .downarrowclass { background: url(https://erp.cmrit.ac.in/img/header-nav-arrow-down-white.gif) no-repeat;width:10px;height:10px;}
+#global-nav-id ul li a .rightarrowclass { background: url(https://erp.cmrit.ac.in/img/header-nav-arrow-right-white.gif) no-repeat;width:10px;height:10px;}
+</style>
+<script type="text/javascript" src="https://erp.cmrit.ac.in/ckeditor/plugins/equation/lang/en.js?t=B8DJ5M3"></script><script type="text/javascript" src="https://erp.cmrit.ac.in/ckeditor/plugins/styles/styles/default.js?t=B8DJ5M3"></script></head><body onload="checkStudentProfileImage()" class="ddcss3support"><input type="hidden" value="true" id="productionServer" class="notranslate">
+			
+		
+
+<!-- ================================================ -->
+
+<!-- Meta -->
+<meta name="description" content="Governing Educational Management System (GEMS)">
+<meta charset="UTF-8">
+<meta name="application-name" content="GEMS">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ================================================ -->
+<link rel="stylesheet" type="text/css" href="css/jquery.alerts.css" media="screen">
+<script type="text/javascript" src="js/jquery.session.js"></script>
+<script type="text/javascript" src="js/jquery.slimscroll.js"></script>
+<script type="text/javascript" src="studentMPW/js/jquery-ui-1.8.21.custom.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/chosen.css" media="screen">
+<script type="text/javascript" src="js/chosen.jquery.min.js"></script>
+<style>
+
+div.preview.loading {
+	background: url('img/ajax-loader.gif') no-repeat
+}
+
+div.preview { float: left; width: 30px; height: 30px; margin-top: 5px;}
+
+div.preview1.loading {
+	background: url('img/ajax-loader.gif') no-repeat
+}
+
+div.preview1 { float: left; width: 30px; height: 30px; margin-top: 5px;}
+
+
+/**div.preview.loading img {display: none; }*/
+<!--
+-->
+div.preview-large.loading-large {
+background: url('studentMPW/img/ajax-loader_large.gif') no-repeat
+}
+
+div.preview-large {width: 65px; height: 65px;margin-left:45%}
+
+div.preview-bar {float:left;width: 60px; height: 20px;}
+div.preview-bar.loading-bar {
+	background: url('studentMPW/img/ajax-loader-bar.gif') no-repeat
+}
+</style>
+	  
+
+
+<!--  *********************************************gems Includes********************************************* -->
+<link type="text/css" rel="Stylesheet" href="css/bootstrap.css">
+<link type="text/css" href="css/jquery-ui-1.8.17.custom.css" rel="stylesheet">
+<script type="text/javascript" src="js/normalHtmlValidation.js"></script>
+<!--  <link type="text/css" rel="Stylesheet" href="studentMPW/css/stylesheet.css" /> -->
+<script type="text/javascript">
+		$('#navHide').popover({
+		placement:'bottom'
+	});
+</script>
+<script>
+		$('#navHeaderHide').popover({
+		placement:'bottom'
+	});
+</script>
+<script>
+ $(function(){
+		$('#loadingDiv').dialog({
+				autoOpen: false,
+				width: 50,
+				height:100,
+				closeOnEscape: false,
+				modal: true
+				
+			});
+		});
+</script>
+<link type="text/css" rel="Stylesheet" href="css/styleBootStrap.css" media="screen">
+<!-- Favicon -->
+<link rel="icon" type="image/x-png" href="img/favicon.png">
+<link rel="shortcut icon" type="image/x-png" href="img/favicon.png">
+
+<!-- Stylesheet -->
+
+    <link rel="stylesheet" type="text/css" href="css/web-style-juno.css">    
+     
+
+
+<!-- Font -->
+<link rel="stylesheet" type="text/css" href="css/sansFont.css">
+
+<!-- JavaScript -->
+<script type="text/javascript" src="js/ddsmoothmenu.js"></script>
+
+<!-- <style type="text/css">
+	#menuLog { font-size:1.4em; margin:0px 0px 0px; }
+	.hidden { position:absolute; top:0; left:-9999px; width:1px; height:1px; overflow:hidden; }
+	.fg-button { clear:left; margin:0 4px 0px 0px; padding: .4em 1em; text-decoration:none !important; cursor:pointer; position: relative; text-align: center; zoom: 1; }
+	.fg-button .ui-icon { position: absolute; top: 50%; margin-top: -8px; left: 50%; margin-left: -8px; }
+	a.fg-button { float:left;}
+	button.fg-button { width:auto; overflow:visible; } /* removes extra button width in IE */
+	
+	.fg-button-icon-left { padding-left: 2.1em; }
+	.fg-button-icon-right { padding-right: 2.1em; }
+	.fg-button-icon-left .ui-icon { right: auto; left: .2em; margin-left: 0; }
+	.fg-button-icon-right .ui-icon { left: auto; right: .2em; margin-left: 0; }
+	.fg-button-icon-solo { display:block; width:8px; text-indent: -9999px; }	 /* solo icon buttons must have block properties for the text-indent to work */	
+	
+	.fg-button.ui-state-loading .ui-icon { background: url(img/spinner_bar.gif) no-repeat 0 0; }
+	</style> -->
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/javascript" src="js/jquery.liveurl.js"></script>
+<script type="text/javascript" src="js/jquery.tokeninput.js"></script>
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="studentMPW/js/jquery.cookie.js"></script>
+<script type="text/javascript" src="studentMPW/placementJs/projectPlacement.js"></script>
+<!-- <script type="text/javascript" src="scripts/student/showAndroidModalOnlyOnce.js"></script> -->
+<!-- <script type="text/javascript" src="js/bootstrap-datepicker.js" ></script> -->
+<link rel="stylesheet" href="css/datepicker.css">
+<link rel="stylesheet" type="text/css" href="css/scheduler.css">
+<!-- <link rel="stylesheet" type="text/css" href="css/DT_bootstrap.css"/> -->
+
+<link rel="stylesheet" href="css/hover-min.css">
+
+<!-- Announcement paper collaps-->
+<script type="text/javascript" src="studentMPW/scripts/studentAnnouncement.js"></script>
+<script type="text/javascript" src="scripts/dms/dms.js"></script>
+<script type="text/javascript" src="scripts/instituteheadjs/announcementAttachment.js"></script>
+<script src="js/upload-and-crop-image_croppie.js"></script>
+<link rel="stylesheet" href="css/upload-and-crop-image_croppie.css">
+<style>
+
+.uniformFontStyles{
+	font-family: 'Tahoma', 'Arial', 'Trebuchet MS', 'Verdana', sans-serif!important;
+	font-size: 11px!important;
+	font-weight: normal;
+	color: #222;
+		
+	
+}
+.uniformFontStylesBold{
+	font-family: 'Tahoma', 'Arial', 'Trebuchet MS', 'Verdana', sans-serif!important;
+	font-size: 11px!important;
+	font-weight: bold;
+	color: #222;
+		
+	
+}
+.NewuniformFontStylesBold{
+	font-family: 'Tahoma', 'Arial', 'Trebuchet MS', 'Verdana', sans-serif!important;
+	font-size: 15px!important;
+	font-weight: bold;
+	color: #222;
+		
+	
+}
+.homeSection {
+    background-color: #fff;
+    border: 1px solid #d4d4d4;
+    box-shadow:4px 8px 6px rgba(0, 0, 0, 0.176);
+    margin-bottom: 14px;
+    position: relative;
+}
+
+.avatar-container {
+    overflow: hidden;
+   /*  padding: 15px; */
+}
+
+body {
+	background-color: #eee;
+	min-height: 130vh;
+	
+}
+.container {
+	/* max-width: 76rem; */
+	margin-right: auto;
+	margin-left: auto;
+	padding: 0rem;
+}
+.collapse-card .title strong {
+    display: block;
+    font-size: 14px;
+    margin-left: 7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 1rem;
+}
+.collapse-card .title span {
+    float: right;
+    font-size: 12px;
+    margin-right: 5px;
+    margin-top: 1rem;
+}
+.chatBox
+{
+  font:normal normal 11px/1.4 Tahoma,Verdana,Sans-Serif;
+  color:#333;
+  width:200px; /* Chatbox width */
+ /*  border:1px solid #344150; */
+  border-bottom:none;
+  background-color:white;
+  position:fixed;
+  right:5px;
+  bottom:0;
+  z-index:9999;
+  box-shadow:1px 1px 5px rgba(0,0,0,.2);
+}
+.chatBox > input[type="checkbox"] {
+  display:block;
+  margin:0 0;
+  padding:0 0;
+  position:absolute;
+  top:0;
+  right:0;
+  left:0;
+  width:100%;
+  height:26px;
+  z-index:4;
+  cursor:pointer;
+  opacity:0;
+  filter:alpha(opacity=0);
+}
+
+.chatBox > label {
+  display:block;
+  height:24px;
+  line-height:24px;
+  background-color:#344150;  
+  color:white;
+  font-weight:bold;
+  padding:0 1em 1px;
+}
+
+.chatBox > label:before {content:attr(data-collapsed)}
+
+.chatBox-content {
+  padding:10px;
+  display:none;
+}
+
+/* hover state */
+.chatBox > input[type="checkbox"]:hover + label {background-color:#404D5A}
+
+/* checked state */
+.chatBox > input[type="checkbox"]:checked + label {background-color:#212A35}
+.chatBox > input[type="checkbox"]:checked + label:before {content:attr(data-expanded)}
+.chatBox > input[type="checkbox"]:checked ~ .chatBox-content {display:block}
+
+.tip {
+	width: 0; 
+	height: 0; 
+	border-bottom: 5px solid transparent;  /* left arrow slant */
+	border-top: 5px solid transparent; /* right arrow slant */
+	border-left: 5px solid #2f2f2f; /* bottom, add background color here */
+	font-size: 0;
+	line-height: 0;
+}
+.chatTable {
+	border-top:0px; 
+    line-height: 18px;
+    padding: 0px;
+    text-align: left;
+    vertical-align: top;
+}
+
+</style>
+<link rel="stylesheet" type="text/css" href="css/toggle-switch.css">
+<link rel="stylesheet" type="text/css" media="screen" href="css/token-input.css">
+<link rel="stylesheet" type="text/css" media="screen" href="css/token-input-facebook.css"> 
+<link rel="stylesheet" type="text/css" media="screen" href="css/liveurl.css">
+<script type="text/javascript" src="js/jquery.livequery.min.js"></script>
+<script type="text/javascript" src="scripts/student/studentHome.js"></script>
+<script type="text/javascript" src="js/gems_plugins.js"></script>
+<script type="text/javascript" src="scripts/dms/dmsMoveToDrive.js"></script>
+<script type="text/javascript" src="scripts/alumni/alumniPost.js"></script>
+<script type="text/javascript" src="js/homepagePlugin.js"></script>
+<link rel="stylesheet" media="all" type="text/css" href="css/examples.css">
+<script type="text/javascript" src="js/jquery.corner.js"></script>
+<script type="text/javascript" src="scripts/alumni/recentBlogs.js"></script>
+<script type="text/javascript" src="scripts/alumni/aluminiDMS.js"></script>
+<script type="text/javascript" src="scripts/student/printTranscript.js"></script>
+<script type="text/javascript" src="js/newBootstrapJs/bootstrap-collapse.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/SpeechKITT/0.3.0/speechkitt.min.js"></script>
+<script type="text/javascript" src="scripts/alumni/alumniPostNew.js"></script>
+        <script type="text/javascript">
+$(document).ready(function(){
+    if (annyang) {
+      // Let's define our first command. First the text we expect, and then the function it should call
+      var commands = {
+        'show attendence': function(search) {showAttendencePage();},
+        'show Assessments': function(search) {showAssignmentPage();},
+        'show Profile' : function(search){window.open("stu_studentProfile.htm","_blank");},
+        'show Syllabus' : function(search){window.open("studentCourseFileNew.htm","_blank");},
+        'show Calender' : function(search){window.open("studentScheduleAcademicCalender.htm","_blank");},
+        'show Timetable' : function(search){window.open("stu_StudentTimeTable.htm","_blank");},
+        'show Library Detail' : function(search){window.open("stu_studentLibraryDetails.htm","_blank");},
+        'show Fees Detail' : function(search){window.open("studentFinanceDetails.htm","_blank");},
+        'show Leave Detail' : function(search){window.open("studentLeaveApplication.htm","_blank");},
+        'show Hostel Detail' : function(search){window.open("studentHostelHomeDetails.htm","_blank");},
+        'show Task' : function(search){getJobTrayAlerts();},
+        'show DMS' : function(search){window.open("manageDocument.json","_blank");},
+      };
+      annyang.addCommands(commands);
+      SpeechKITT.annyang();
+      SpeechKITT.setStylesheet('https://cdnjs.cloudflare.com/ajax/libs/SpeechKITT/0.3.0/themes/flat.css');
+      SpeechKITT.vroom();
+    }
+});
+</script>
+
+<script type="text/javascript" src="/scriptReactCompiled/alumni/alumnipostReact.js"></script>
+<script type="text/javascript" src="/scriptReactCompiled/student/studentHomeReact.js"></script>
+<script type="text/javascript" src="/scriptReactCompiled/Modules/UploadProfile.js"></script>
+ 
+<style type="text/css">
+#currentSelection{
+text-transform: uppercase; 
+}
+.shortcurts>li{
+  display:inline;
+  background-color: #FFFFFF;
+  color: #FFFFFF!important;
+  margin:15px;
+  margin-top:10px
+}
+.shortcurts > li > a {
+ font-size:10.4px;
+ color:#000000!important;
+
+}
+.studentDesc{
+	font-size:15px !important;
+	text-transform: uppercase; 
+	margin-top:10px;
+	margin-left:70px;
+	text-align:left;
+	font-weight:bold;
+}
+.studentDesc > #rollNo{
+	font-size:11px;
+	text-transform: none;
+}
+.profileDash{
+padding:5px;
+}
+
+.panelDashBoard{
+	margin-bottom:7px;
+	padding:5px; 
+	background-color:#0b4971;
+	/*font-weight:bold;*/
+	color: #FFFFFF!important;
+}
+.panelDashBoard >span > a{
+	color: #FFFFFF!important;
+}
+.ttw-notification-menu{
+	display:inline-block;
+	margin-right: 7px;
+    width: 160px;
+}
+ul.token-input-list-facebook{
+	border: 1px solid #CCCCCC;
+    border-radius: 3px 3px 3px 3px;
+    width: 100%;
+}
+
+/* Timeline */
+.timeline {
+  list-style: none;
+  padding: 10px 0 10px;
+}
+.profile-cover {
+	-webkit-box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+  	box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);  	
+}
+.timeline > li {
+  margin-bottom: 20px;
+  position: relative;
+}
+.timeline > li > .timeline-panel {
+  border: 1px solid #d4d4d4;
+  position: relative;
+  -webkit-box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+}
+
+.timeline-title {
+  margin-top: 0;
+  color: inherit;
+}
+.timeline-body > p,
+.timeline-body > ul {
+    padding:10px;
+    margin-bottom: 0;
+}
+.timeline-body > p + p {
+  margin-top: 5px;
+}
+.timeline-footer{
+    padding:10px;
+    background-color:#f4f4f4;
+}
+.timeline-footer > a{
+    cursor: pointer;
+    text-decoration: none;
+}
+.timeline-header{
+    padding:10px;
+    background-color:#f4f4f4;
+}
+
+/* facebook share box */
+.facebook-share-box {
+    width: 100%;
+}
+
+.facebook-share-box .share-form{
+	padding: 2%;
+}
+.facebook-share-box .share {
+    -webkit-transition: 0.1s ease-out height;
+    -moz-transition: 0.1s ease-out height;
+    -ms-transition: 0.1s ease-out height;
+    -o-transition: 0.1s ease-out height;
+    transition: 0.1s ease-out height;
+    clear: both;
+    background: white;
+    border: 2px solid #dddddd;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.facebook-share-box .share .arrow {
+    background: url(img/arrow1.png) no-repeat #dddddd;
+    position: absolute;
+    width: 14px;
+    height: 10px;
+    left: 4px;
+    display: inline;
+    top: -10px;
+    -webkit-transition: 0.3s ease-out all;
+    -moz-transition: 0.3s ease-out all;
+    -ms-transition: 0.3s ease-out all;
+    -o-transition: 0.3s ease-out all;
+    transitiodivn: 0.3s ease-out all;
+}
+
+.facebook-share-box .post-types li a {
+    color: #085083;
+    text-decoration: none;
+}
+
+.facebook-share-box .post-types li a.active {
+    color: #404040;
+}
+
+.facebook-share-box .post-types {
+    padding-left: 5px;
+}
+
+.facebook-share-box ul {
+    list-style: none;
+    margin-bottom: 9px;
+}
+
+.facebook-share-box .post-types li {
+    display: inline;
+    margin-right: 10px;
+}
+
+.facebook-share-box input[type="text"] {
+  border: none;
+}
+
+.facebook-share-box .message{
+  border: none;
+}
+
+/*Custom*/
+.mg-top{
+  margin-top: 10%;
+}
+.map_canvas{
+  height: 150px;
+}
+.videowrapper {
+    float: none;
+    clear: both;
+    width: 100%;
+    position: relative;
+    padding-bottom: 56.25%;
+    padding-top: 25px;
+    height: 0;
+}
+.videowrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.timeline.affix {
+  width: 33%;
+}
+@media (max-width: 767px) {
+  .timeline.affix {
+    position: static;
+    width: auto;
+    top: 0;
+  }
+}
+</style>
+<style type="text/css">
+ul.token-input-list-facebook {
+    border: 1px solid #CCCCCC;
+    border-radius: 3px 3px 3px 3px;
+    width: 400px;
+    margin-left: 5px;
+}
+.birthDay,
+.birthDay div,
+.birthDay span {
+	background-color: #FFFFFF; /* background color */
+	border-color: #FFFFFF;     /* border color */
+	color: #000000;           /* text color */
+}
+.birthDay{
+	padding-left: 40px;
+	background-image: url(img/birthday.png);
+	background-repeat: no-repeat;
+	background-position: 10px 100%;
+}
+
+#list a
+{
+	font-size:14px;
+}
+
+ .table tbody tr:hover td,.table tbody tr:hover th {
+	background-color: transparent; }
+	
+	/* .commentbox input
+	{
+		height:28px;
+	} */
+	.commentbox button
+	{
+		height:28px;
+		margin:5px;
+	}
+	.metro h3
+	{
+		font-size: 2.2rem !important;
+	}
+	.metro h5
+	{
+		font-size: 1.4rem !important;
+	}
+	
+ 
+.span2 h3{
+	font-size: 2.2rem;
+	font-size: 0;
+}
+
+</style>
+<script type="text/javascript">
+	function onAttachFileFunction(){
+		$("script[src='js/jquery.tree.js']").remove();
+		$("script[src='js/ajaxupload.js").remove();
+		$("script[src='scripts/dms/dmsStudent.js").remove();
+		$("script[src='scripts/dms/attachFromDMSForSharingStudent.js").remove();
+		$("link[href='css/tree.css']").remove();
+		
+		$.getScript('js/jquery.tree.js');
+		$.getScript('js/ajaxupload.js');
+		$.getScript('scripts/dms/dmsStudent.js');
+		$.getScript('scripts/dms/attachFromDMSForSharingStudent.js');
+	    $.getScript( "css/tree.css" );
+	}
+</script>
+
+		
+
+
+
+
+ 
+
+
+
+
+<script type="text/javascript" src="js/jquery.session.js"></script>
+
+
+
+
+
+
+<style type="text/css">
+#middleframe{
+	overflow: auto;
+}
+.searchResultTable tr td.data{
+	padding-left: 5px;
+}
+.searchResultTable tr td.image{
+	width: 30px;
+	height: 30px;
+	padding: 2px 2px 2px 2px;
+}
+.overlay
+ {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     height:100%;
+     width:100%;
+     background-color: rgba(0, 0, 0, 0.85);
+     z-index: 1999;
+     color: white;
+     
+   } 
+   
+   .serverNotificationOverlay
+ {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     height:13%;
+     width:100%;
+     z-index: 1999;
+     color: white;
+   } 
+ 
+.noti-bubble {
+    height: 17px;
+    width: 17px;
+    background: #f56c7e url("img/notification-bg.png") no-repeat center center scroll;
+    background-image: none\9;
+    right: 5px; 
+    float:right;
+    color: #fff;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, .2);
+    text-align: center;
+    font-size: 10px;
+    line-height: 18px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .17), 0 1px 1px rgba(0, 0, 0, .2);
+    -moz-box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .17), 0 1px 1px rgba(0, 0, 0, .2);
+    -webkit-box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .17), 0 1px 1px rgba(0, 0, 0, .2);
+    border-radius: 9px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    margin-left:5px;
+}
+
+.noti-bubble.show {
+    display: block;
+}
+</style>
+
+<div class="overlay offline" style="display: none;"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<meta name="robots" content="noindex, nofollow">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- <script src="js/offline-0.7.11/offline.min.js"></script>
+<link rel="stylesheet" href="js/offline-0.7.11/themes/offline-theme-default.css" />
+<link rel="stylesheet" href="js/offline-0.7.11/themes/offline-language-english.css" /> -->
+
+<link rel="stylesheet" type="text/css" href="/css/Font/juno-fonts.css">
+
+<script type="text/javascript" src="scripts/employeeJs/CourseFile/CourseFileShortCut.js"></script>
+<script type="text/javascript" src="js/jquery.help.js"></script>
+<script type="text/javascript" src="js/jquery.protector.js"></script>
+<script src="studentMPW/placementJs/placementRegistrationRequest.js" type="text/javascript"></script>
+<script type="text/javascript" src="studentMPW/js/jquery.cookie.js"></script>
+
+<script type="text/javascript">
+
+document.addEventListener('contextmenu', event=> event.preventDefault()); 
+document.onkeydown = function(e) { 
+if(event.keyCode == 123) { 
+return false; 
+} 
+    if(e.ctrlKey && e.shiftKey){ 
+    		return false; 
+    } 
+} 
+
+$('document').ready(function(){
+		window.onresize = detectDevTools;
+      detectDevTools();
+});
+
+function detectDevTools() {
+	  if(true) return ;
+ /*    const threshold = 160; 
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    if (widthThreshold || heightThreshold) {
+        $('#acdemicFeeDeatailId').html('<p><h1> some discrepancy detected plese re-open page!<h1><p>');
+        swal('Developer tools are open!');
+    } */
+} 
+
+
+$(document).ready(function(){
+	try{
+		getMyLocalIp();
+	}catch(e){}
+	
+	try{
+	autoSelected_GemsDateFilters();
+	if($.cookie("cookiesChznArr")!=null){
+		gCookieChzxReArrayList = $.cookie("cookiesChznArr").split('~@~@~');
+	}
+	}catch(e){}
+
+});
+
+var globalMyIp;
+function getMyLocalIp(){
+	var myIP = ''; 
+	try{
+	window.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;   //compatibility for firefox and chrome
+	    var pc = new RTCPeerConnection({iceServers:[]}), noop = function(){};      
+	    pc.createDataChannel("");    //create a bogus data channel
+	    pc.createOffer(pc.setLocalDescription.bind(pc), noop);    // create offer and set local description
+	    pc.onicecandidate = function(ice){  //listen for candidate events
+	        if(!ice || !ice.candidate || !ice.candidate.candidate)  return;
+	    	if(/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)!=null){
+	    		 globalMyIp = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)[1];
+	    	}
+	        $('#hmyIp').val(globalMyIp);
+	        //console.log('my IP: ', globalMyIp);   
+	        pc.onicecandidate = noop;
+	    };
+	   
+	}
+	catch(e){
+	}
+	
+	   // globalMyIp = myIP;
+}
+
+function convertComboToSearchable(element,maxSelectedLimit){
+	var timeOut = 1500; 
+	if(typeof element == "object"){
+		const {target, timeOut:timeOutOp=1} = element;
+		timeOut = timeOutOp;
+		element = target;
+	}
+	
+	setTimeout(function(){
+	if(element.substring(0,1)=='#'){
+		elementId=element;
+		maxSelectedLimit = maxSelectedLimit!=undefined?maxSelectedLimit:$(elementId+' option').length;
+		$(elementId).chosen({no_results_text:'Oops, nothing found!',max_selected_options:maxSelectedLimit});
+		$(elementId+'_chzn').css({'width':'260px'});
+		$(elementId+'_chzn').find('.chzn-results').css('height','680px');
+		$(elementId+'_chzn').find('.chzn-search').find('input[type="text"]').css('height','25px');
+		if((!$(elementId).hasClass('doNotSelect')) && $(elementId+' option').length == 2)
+			$(elementId).removeAttr('selected').find('option').eq(1).attr('selected', 'selected').trigger('change');
+	    $(elementId).trigger("liszt:updated");
+	}else if(element.substring(0,1)=='.'){
+		elementClass=element;
+		$(elementClass).each(function(){
+			maxSelectedLimit = maxSelectedLimit!=undefined?maxSelectedLimit:$(this).find('option').length;
+			var id = $(this).attr('id');
+			$(this).chosen({no_results_text:'Oops, nothing found!'});
+			$('#'+id+'_chzn').css({'width':'260px'});
+			$('#'+id+'_chzn').find('.chzn-results').css('height','680px');
+			$('#'+id+'_chzn').find('.chzn-search').find('input[type="text"]').css('height','25px');
+			if(!$(this).hasClass('doNotSelect') && $(this).find(' option').length == 2)
+				$(this).removeAttr('selected').find('option').eq(1).attr('selected', 'selected').trigger('change');
+		    $(this).trigger("liszt:updated");
+		});
+	}else{
+		elementTag=element;
+		$(elementTag).each(function(){
+			maxSelectedLimit = maxSelectedLimit!=undefined?maxSelectedLimit:$(this).find('option').length;
+			var id = $(this).attr('id');
+			$(this).chosen({no_results_text:'Oops, nothing found!'});
+			$('#'+id+'_chzn').css({'width':'260px'});
+			$('#'+id+'_chzn').find('.chzn-results').css('height','680px');
+			$('#'+id+'_chzn').find('.chzn-search').find('input[type="text"]').css('height','25px');
+			$(this).removeAttr('selected').find('option').eq(1).attr('selected', 'selected').trigger('change');
+		    $(this).trigger("liszt:updated");
+		});
+	}
+	}, timeOut);
+}
+
+var gCookieChzxReArrayList = null;
+var placementGlobalArr;
+// Only for visible drop downs
+function convertNonHiddenComboToSearchable(element,maxSelectedLimit){
+	
+	if(element.substring(0,1)=='#'){
+		elementId=element;
+		maxSelectedLimit = maxSelectedLimit!=undefined?maxSelectedLimit:$(elementId+' option').length;
+		if($(elementId).is(':visible')){
+			$(elementId).chosen({no_results_text:'Oops, nothing found!',max_selected_options:maxSelectedLimit});
+			$(elementId+'_chzn').css({'width':'260px'});
+			$(elementId+'_chzn').find('.chzn-results').css('height','680px');
+			$(elementId+'_chzn').find('.chzn-search').find('input[type="text"]').css('height','25px');
+		    $(elementId).trigger("liszt:updated");
+		}
+	}else if(element.substring(0,1)=='.'){
+		elementClass=element;
+		$(elementClass).each(function(){
+			maxSelectedLimit = maxSelectedLimit!=undefined?maxSelectedLimit:$(this).find('option').length;
+			var id = $(this).attr('id');
+			if($(this).is(':visible')){
+				$(this).chosen({no_results_text:'Oops, nothing found!'});
+				$('#'+id+'_chzn').css({'width':'260px'});
+				$('#'+id+'_chzn').find('.chzn-results').css('height','680px');
+				$('#'+id+'_chzn').find('.chzn-search').find('input[type="text"]').css('height','25px');
+			    $(this).trigger("liszt:updated");
+			}
+		});
+	}else{
+		elementTag=element;
+		$(elementTag).each(function(){
+			maxSelectedLimit = maxSelectedLimit!=undefined?maxSelectedLimit:$(this).find('option').length;
+			var id = $(this).attr('id');
+			if($(this).is(':visible')){
+				$(this).chosen({no_results_text:'Oops, nothing found!'});
+				$('#'+id+'_chzn').css({'width':'260px'});
+				$('#'+id+'_chzn').find('.chzn-results').css('height','680px');
+				$('#'+id+'_chzn').find('.chzn-search').find('input[type="text"]').css('height','25px');
+			    $(this).trigger("liszt:updated");
+			}
+		});
+	}
+}
+
+/* Offline.options = {
+		checkOnLoad: false,
+		interceptRequests: true,
+		requests: false,
+		game: false
+	}; */
+	
+var alertArray = { "alert_create" : "Record(s) Created Successfully !!", //Save
+				"alert_update": "Record(s) Updated Successfully !!", // edit/update/change
+				"alert_delete" : "Record(s) Deleted Successfully !!",
+				"alert_remove" : "Record(s) Removed Successfully !!",
+				"alert_frozen" : "Record(s) Frozen Successfully !!",
+				"alert_unfrozen" : "Record(s) Unfrozen Successfully !!",
+				"alert_approved" : "Record(s) Approved Successfully !!",
+				"alert_disapproved" : "Record(s) Disapproved Successfully !!",
+				"alert_registered" : "Record(s) Registered Successfully !!",
+				"alert_deregistered" : "Record(s) Deregistered Successfully !!",
+				"alert_accepted" : "Record(s) Accepted Successfully !!",
+				"alert_rejected" : "Record(s) Rejected Successfully !!",
+				"alert_selection" : "Please select at least one record !!",
+				"alert_duplicate" : "Record(s) Already Exists !!",
+				"alert_upload" : "Document(s) Uploaded Successfully !!",
+				"alert_error" : "Something went wrong... Please try again later !!",
+				"alert_replicate" : "Record(s) Replicated Successfully !!",
+				"alert_blocked" : "Record(s) Blocked Successfully !!",
+				"alert_norecord" : "No Record(s) Found !!"};	
+	
+	
+function getCustomAlertMessage(alertKey){
+	if(alertArray[alertKey]!=undefined)
+		return jAlert(alertArray[alertKey]);
+	else
+		return jAlert(alertKey);
+}
+function callScheduledMenthod(srcName)
+{
+	$.ajax({
+		url:'callScheduleCronMethod.json?method='+srcName,
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(msg){
+				jAlert(msg);
+			},
+			error:function(){
+				getCustomAlertMessage("alert_error");
+			}
+	});
+}
+$(document).ajaxComplete(function() {
+	if($("#successmsg").is(":visible")) {
+	   	$('#successMsgSpanCommon').html('Record(s) Created Successfully !!');
+	}else if($("#errormsg").is(":visible")){
+		$('#errorMsgSpanCommon').html('Record(s) Already Exists !!');
+	}
+});
+	
+//var run = function(){$.ajax({url:'api/checkLogin.htm',dataType:'json',success:function(jArray){if((jArray["success"]!=undefined) && (!jArray["success"])){window.location.href="home.htm";}}});};
+//setInterval(run, 30000);
+$(function(){
+/* 	var $offline = $('.offline');
+	Offline.on('confirmed-down', function () {
+		$offline.fadeIn();
+	});
+	Offline.on('confirmed-up', function () {
+		$offline.fadeOut();
+	}); */
+});
+</script>
+
+
+	
+<input id="hdnUserRole" type="hidden" value="student" class="notranslate">
+
+
+<style>
+#header-wrap {
+	height: auto;
+	background-color: var(--juno-blue) !important;
+	background-image: none !important;
+	padding: 15px 0px;
+}
+
+#header {
+	width: 98%;
+}
+
+#header-menu > .btn-group > .btn-notify, #header-shortcut > .btn-group > .btn, #header-welcome > .btn-group > .btn {
+	color: #FFF;
+	background: var(--juno-blue);
+	border-color: var(--juno-blue);
+}
+#header-nav {
+	width: 98%;
+}
+
+#container-wrap {
+	width: 99%;
+	min-width: 980px;
+}
+
+#container {
+	width: 98%;
+	min-width: 1000px;
+}
+#header-nav-wrap {
+	padding: 4px;
+}
+
+#footer-wrapX {
+	width: 95% !important;
+}
+
+#homeContent .box-wrap {
+	width: 80% !important;
+	min-width: 780px;
+}
+</style>
+
+<!-- ============================================================= -->
+<!-- header -->
+<div id="header-wrap">
+<div id="header" class="clearfix">
+
+<div id="serverNotificationBar" class="serverNotificationOverlay" style="display:none;"></div>
+
+<input type="hidden" id="customerHelper" value="CMR_IT" class="notranslate">
+<input type="hidden" id="googlemapsapikey" value="AIzaSyCHuxOgzN5JKlsXV4bOH4DHuzwnklQlUX8" class="notranslate">
+
+<input type="hidden" id="redirectStatusHideMenuProp" value="false" class="notranslate">
+<input type="hidden" id="currentCustomerRoleType" value="Student" class="notranslate">
+<input type="hidden" id="ZUlebYhiwUC" value="false" class="notranslate">
+<input id="hdnUserRole" type="hidden" value="student" class="notranslate">
+ 	<div id="header-logo">
+		<input type="hidden" id="hd_productName" value="GEMS" class="notranslate">
+		
+			
+				<a title="Home" href="home.htm"><img style="box-sizing: border-box; border: 0px; vertical-align: baseline; margin: 0px; padding: 0px;height:50px;text-align: center; border-radius: 25px;background-color: #fff;" src="/restApi/getProductLogo.png"></a>
+			
+			
+			<input type="hidden" id="hmyIp" value="" class="notranslate">
+		
+		
+		 
+			<img src="getCustomerLogo.json" style="background-color: #fff;box-sizing: border-box; border: 0px; vertical-align: baseline; margin: 0px; padding: 0px;height:50px;text-align: center;">
+		
+		
+		
+	</div>
+	<input type="hidden" value="true" id="productionServer" class="notranslate">
+	<div id="header-menu" class="show safeexamToHide">
+		<script type="text/javascript">
+		$(function() {
+			$( "#header-menu a.btn" ).hover( function() {
+				$( this ).children("span.text").show();
+			}, function() {
+				$( this ).children("span.text").hide();
+			});
+		});
+		</script>
+		
+		
+		<div class="btn-group font-regular">
+		 <!-- headerGEMS -->
+			<a href="viewAnnouncementStudent.htm" class="btn btn-notify btn-small"><i class="fa fa-bullhorn fa-2x"></i> <span id="NoticeCounter" class="number" style="display: none;"></span></a>
+		
+		
+		
+		<a class="btn btn-notify btn-small" onclick="changeQrLoginFlag(true);generateLoginQr();" title="QR For Login"><i class=" fa fa-qrcode fa-2x"></i><span class="noti-bubble"></span></a>
+		
+		<!-- <a class="btn btn-notify btn-small transportBtn" href="/transport" data-userId="38689" data-sessionId="D831E2C71E82D24BB4210D8AABBBB3C8"><i class=" fa fa-taxi fa-2x"></i><span class="noti-bubble"></span></a> -->
+		</div>
+		
+	</div>
+    <!-- Chatbot -->
+    <style>
+        .fab {
+            position: fixed;
+            bottom: 50px;
+            right: 50px;
+            height: 60px;
+            width: 60px;
+            background: #fff;
+            /*background-color: var(--chat-header-background-color);*/
+            color: var(--chat-header-color);
+            border-radius: 50%;
+            border: 2px solid var(--chat-header-background-color);
+            font-size: 28px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            overflow: hidden;
+        }
+        .fab img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            pointer-events: none;
+            border-radius: 9999px;
+        }
+        .fab:hover {
+            /*background-color: var(--chat-header-background-color);*/
+            color: var(--chat-header-color);
+        }
+        .chat-popup {
+            display: none;
+            flex-direction: column;
+            position: fixed;
+            bottom: 120px;
+            right: 40px;
+            width: 540px;
+            height: 560px;
+            background: #fff;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.40);
+            border-radius: 12px;
+            z-index: 1200;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .chat-popup.maximized {
+            width: 90vw;
+            height: 90vh;
+            bottom: 5vh;
+            right: 5vw;
+        }
+        .chat-popup-header {
+            background: var(--chat-header-background-color);
+            color: var(--chat-header-color);
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .close-btn, .expand-btn {
+            background: transparent;
+            border: none;
+            color: var(--chat-header-color);
+            font-size: 22px;
+            cursor: pointer;
+            margin-left: 12px;
+        }
+        .expand-btn i {
+            font-size: 18px;
+        }
+        .chat-popup-body {
+            flex: 1;
+            height: 100%;
+            padding: 0;
+            background: #f7f7f7;
+        }
+        .chat-popup-body iframe {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: transparent;
+        }
+        .expand-btn i, .close-btn i {
+             font-size: 14px;
+             display: inline-block;
+         }
+    </style>
+    <script>
+        if (window.location.host.includes("erp.juno.org.in")) {
+            document.documentElement.style.setProperty("--chat-header-background-color", "#e8e8e8");
+            document.documentElement.style.setProperty("--chat-header-color", "#222");
+        } else {
+            const junoBlue = getComputedStyle(document.documentElement).getPropertyValue("--juno-blue").trim() || "#007bff";
+            document.documentElement.style.setProperty("--chat-header-background-color", junoBlue);
+            document.documentElement.style.setProperty("--chat-header-color", "#fff");
+        }
+
+        const isChatPopupOpen = () => document.getElementById('chatPopup').style.display === 'flex';
+        function openChatPopup() {
+            document.getElementById('chatPopup').style.display = 'flex';
+        }
+        function closeChatPopup() {
+            document.getElementById('chatPopup').style.display = 'none';
+        }
+        function toggleChatPopup() {
+            if (isChatPopupOpen()) {
+                closeChatPopup();
+            } else {
+                openChatPopup();
+            }
+        }
+        function toggleMaximize() {
+            const chatPopup = document.getElementById('chatPopup');
+            const expandIcon = document.getElementById('expandIcon');
+            chatPopup.classList.toggle('maximized');
+            expandIcon.classList.toggle('fa-window-maximize');
+            expandIcon.classList.toggle('fa-window-minimize');
+        }
+    </script>
+    
+    
+    <!-- Chat Popup -->
+    <div class="chat-popup" id="chatPopup">
+        <div class="chat-popup-header">
+            <span>JUNO.ai</span>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <div class="expand-btn" onclick="toggleMaximize()">
+                    <i id="expandIcon" class="fa fa-window-maximize" aria-hidden="true"></i>
+                </div>
+                <div class="close-btn" id="closeChatBtn" onclick="closeChatPopup()"><i class="fa fa-times" aria-hidden="true"></i></div>
+            </div>
+        </div>
+        <div class="chat-popup-body">
+            <iframe src="/ai-chat/?sessionId=D831E2C71E82D24BB4210D8AABBBB3C8&amp;username=Amogh Sai Ykuntam  &amp;disableGreeting=true&amp;role=Student&amp;host=CMR_SERVER&amp;connect=&amp;chatbot_id=f0914431-20e6-49fb-808f-39cd3654a12e" width="100%" height="100%" style="border:none; border-radius:8px;" title="Chat Agent"></iframe>
+        </div>
+    </div>
+
+	<div id="header-shortcut" class="show safeexamToHide">
+		<div class="btn-group">
+		   	
+		   				   		
+		   	<a class="btn dropdown-toggle btn-small" data-toggle="dropdown" href="javascript:void(0)" title="Shortcut"><i class="fa fa-external-link fa-2x"></i></a>
+		   	
+	    	<ul class="dropdown-menu" id="ulShortcut">
+	    	 <!-- headerStudent -->
+	    	
+	    		
+		    		<li><a href="registerforPlacements.htm" class="j-fa fa-wpforms">Final Placement(s)</a></li>
+		    		<li><a href="viewPlacements.htm?placementFlag=INTERN" class="j-fa fa-file-text-o">Project Placement(s)</a></li>
+		    		<li><a href="viewAnnouncement.htm" class="j-fa fa-bullhorn">Placement Announcement(s)</a></li>
+		    		<li class="divider"></li>
+		    		<li><a href="studentEvents.htm?p=student" class="j-fa fa-calendar">Events</a></li>
+					<!-- <li><a href="stu_timetableStudent.htm" class="j-fa fa-clock-o">Scheduler</a></li> Gauravi ma'am -->
+                    <li><a href="stu_academicTimetableStudent.htm" class="j-fa fa-clock-o">Scheduler</a></li>
+                    
+					<li><a href="viewExamTimetable.htm" class="j-fa fa-table">Exam Timetable</a></li>
+					<li><a href="employeeWebOpac.htm" class="j-fa fa-globe">LIBRARY WEB-OPAC</a></li>
+					
+					<li><a href="notes.json" class="j-fa fa-book">Digital Library</a></li>
+					
+					
+					
+				
+			
+		
+			</ul>
+	    	
+	    </div>
+	</div>
+	
+	
+
+	
+	
+	
+	<div id="header-welcome">
+		<div class="btn-group safeexamToHide">
+	    <a class="btn dropdown-toggle btn-small" data-toggle="dropdown" href="javascript:void(0)"><i class="fa fa-cogs fa-2x"></i></a>
+	    <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dropdownMenu">
+	    	
+
+	    	<!-- <li id="helpManualListItem" style="display:none;"><a id="helpManualLink" href="#">Help Manual</a></li> -->
+			<li id="transportV2Admin"></li>
+			<li id="transportV2Crew"></li>
+
+	    <!--Description :  Ticket #251151 WIP 
+	    Added links in environment condition-->
+		
+			<li class="divider"></li>
+
+			
+	    	
+		
+			
+		<li class="divider"></li>
+	  	<li><a href="userGemsAccountSettings.htm">Settings <i class="fa fa-cog"></i></a></li>
+			
+	    	
+			
+			
+			
+			<li class="divider"></li>
+			<li><a href="./logout.json">Logout <i class="fa fa-sign-out"></i></a></li>
+	    </ul>
+	    
+	    </div>
+	</div>
+
+	<div id="header-picture">
+		<img src="/restApi/getStudentProfileImageById.png?ddd=D831E2C71E82D24BB4210D8AABBBB3C8">
+	</div>
+
+	<div id="header-name-role">
+		<p>
+			
+				
+					
+						<a href="stu_studentProfile.htm">Amogh Sai Ykuntam  </a>
+					
+			
+			
+			<br style="margin: 0; line-height: 0;">
+			<span> Student </span>
+		</p>
+		<input type="hidden" id="hdWelcomeName" value="Amogh Sai Ykuntam  " class="notranslate">
+	</div>
+</div>
+</div>
+<!-- /header -->
+<!-- header-nav -->
+<div id="header-nav-wrap" class="safeexamToHide">
+<div id="header-nav" class="clearfix menuBar">
+<div id="menuRole" class="safeexamToHide"><div id="global-nav-id" class="ddsmoothmenu"><ul><li style="z-index: 1000;"><a menushortcutid="0" pid="20001" href="#" style="padding-right: 23px;">Institute<span style="display: block;" class="downarrowclass"></span></a><ul style="display: block; top: 33px;"><li><a menushortcutid="0" pid="20004" href="#">Finance</a><ul><li><a menushortcutid="0" pid="21859" href="studentFinanceDetails.htm">Financial Details</a></li><li><a menushortcutid="0" pid="21860" href="stu_myOnlineTransactions.htm">Online Transactions</a></li></ul></li></ul></li><li style="z-index: 999;"><a menushortcutid="0" pid="20007" href="#" style="padding-right: 23px;">Personal<span style="display: block;" class="downarrowclass"></span></a><ul style="display: block; top: 33px;"><li><a menushortcutid="0" pid="21877" href="stu_studentDocumentRequest.htm">Document Request to office</a></li><li><a menushortcutid="0" pid="24807" href="stu_studentConvocation.htm">Student Convocation</a></li><li><a menushortcutid="0" pid="24912" href="stu_studentConvocationNew.htm">Student Convocation New</a></li></ul></li><li style="z-index: 998;"><a menushortcutid="0" pid="20008" href="#" style="padding-right: 23px;">Academic Schedules<span style="display: block;" class="downarrowclass"></span></a><ul style="display: block; top: 33px;"><li><a menushortcutid="0" pid="21880" href="studentScheduleAcademicCalender.htm">Academic Calendar</a></li><li><a menushortcutid="0" pid="21881" href="studentHoliday.htm">Holidays</a></li></ul></li><li style="z-index: 997;"><a menushortcutid="0" pid="20009" href="#" style="padding-right: 23px;">Academic Functions<span style="display: block;" class="downarrowclass"></span></a><ul style="display: block; top: 33px;"><li><a menushortcutid="0" pid="20010" href="#">University Exam/Result</a><ul><li><a menushortcutid="0" pid="24760" href="stu_ExamRevalPhotoCopy.htm">Revaluation/Photocopy Autonomous University Exam Form</a></li><li><a menushortcutid="0" pid="24820" href="ExamStudentForm.htm">University Exam Form/Semester Wise</a></li><li><a menushortcutid="0" pid="24831" href="stu_autonomousStudentResult.htm">Autonomous Student Result</a></li><li><a menushortcutid="0" pid="130004141" href="stu_photocopyAndRevalNotificationCourseWise.htm">Photocopy/Reval Application</a></li></ul></li><li><a menushortcutid="0" pid="21839" href="stu_studentElectiveCourseChoice.htm">Course Registration</a></li><li><a menushortcutid="0" pid="21893" href="stu_studentTest.htm">Online Assessment</a></li><li><a menushortcutid="0" pid="21894" href="stu_studentOnlineTestResult.htm">Online Assessment Result</a></li><li><a menushortcutid="0" pid="24732" href="studentCourseFileNew.htm">Courses</a></li><li><a menushortcutid="0" pid="24830" href="stu_repeateCoursePreference.htm">Re-Registration Course Preference</a></li><li><a menushortcutid="0" pid="130004140" href="#">Feedback</a><ul><li><a menushortcutid="0" pid="21892" href="stu_instituteFeedbackStudent.htm">Course Feedback</a></li><li><a menushortcutid="0" pid="24852" href="stu_instituteMentiStudent.htm">Mentor Feedback</a></li></ul></li></ul></li><li style="z-index: 996;"><a menushortcutid="0" pid="20021" href="#" style="padding-right: 23px;">Facilities<span style="display: block;" class="downarrowclass"></span></a><ul style="display: block; top: 33px;"><li><a menushortcutid="0" pid="20022" href="#">Hostel</a><ul><li><a menushortcutid="0" pid="21940" href="studentHostelNightOut.htm">Leave/Night Out Request</a></li><li><a menushortcutid="0" pid="21942" href="roomComplaints.htm">Room Complaint and Maintenance</a></li><li><a menushortcutid="0" pid="21943" href="studentHostelRegistrationRequest.htm">Hostel Registration</a></li><li><a menushortcutid="0" pid="24814" href="maintenanceComplaintForStudent.htm">Maintenance Complaint Request</a></li></ul></li></ul></li><li style="z-index: 995;"><a menushortcutid="0" pid="20032" href="#" style="padding-right: 23px;">Communication<span style="display: block;" class="downarrowclass"></span></a><ul style="display: block; top: 33px;"><li><a menushortcutid="0" pid="21983" href="studentAnnouncement.htm">Announcements</a></li><li><a menushortcutid="0" pid="21985" href="studentGrievance.htm">Feedback</a></li><li><a menushortcutid="0" pid="24211" href="studentGrievance.htm">Grievance</a></li><li><a menushortcutid="0" pid="24872" href="studentVoting.htm">Student Voting</a></li><li><a menushortcutid="0" pid="2421696" href="raiseGrievances.htm">Raise Grievance</a></li></ul></li><li style="z-index: 994;"><a menushortcutid="0" pid="24874" href="#" style="padding-right: 23px;">OSA<span style="display: block;" class="downarrowclass"></span></a><ul style="display: block; top: 33px;"><li><a menushortcutid="0" pid="24871" href="stu_candidatureRegistration.htm">Candidature Registration</a></li></ul></li><li style="z-index: 993;"><a menushortcutid="0" pid="24882" href="#" style="padding-right: 23px;">DCCC / CSP<span style="display: block;" class="downarrowclass"></span></a><ul style="display: block; top: 33px;"><li><a menushortcutid="0" pid="24877" href="ssw_StudentsswRegistration.htm">SSW Registration </a></li><li><a menushortcutid="0" pid="24878" href="DCCC_Registration.htm">DCCC / CSP Dashboard </a></li><li><a menushortcutid="0" pid="24879" href="sswStudentActivityRegistration.htm">Student Activity Registration</a></li><li><a menushortcutid="0" pid="24880" href="sswStudentActivity.htm">Student Activity</a></li><li><a menushortcutid="0" pid="24881" href="VolunteeringLetter.htm">DCCC / CSP Approval</a></li></ul></li></ul></div></div>
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+ 
+ 
+
+
+
+
+ <input type="hidden" value="May 21, 2026" readonly="readonly" id="dateTime" class="notranslate">
+<style>.breadCrumbs{min-height:13px;}</style>
+
+ 
+<script type="text/javascript" src="js/menuMasterPage.js"></script>
+<input id="hdnUserRole" type="hidden" value="student" class="notranslate">
+
+<script type="text/javascript">
+
+
+setInterval(function(){ breadcrumbBoxDateTimer(); }, 1000);//myTimer
+var gTimeInMillis =  1779312982310;
+
+
+function breadcrumbBoxDateTimer() {
+	gTimeInMillis=gTimeInMillis+1000;
+	var dObj = new Date(gTimeInMillis);
+	var time=dObj.toLocaleTimeString();
+
+	
+	/***Add Bookmark Icon***/
+	if($('#menuNameSpan').length==0 && $.trim(firstTimebreadCrumbs)!='' && $('.breadCrumbs').length>0){
+		var dropdownLst = '';
+		
+
+		$(".breadCrumbs").html("<span id='menuNameSpan'></span><b  style='font-size:13px;font-weight: normal;' class='pull-right'> "+$("#dateTime").val()+" <span class='breadCrumbs_timestamp' style='margin-left:5px;'>"+time+"</span>"+dropdownLst+"</b>");
+		
+		
+		$('#menuNameSpan').html(firstTimebreadCrumbs);
+		
+	}else if($.trim(firstTimebreadCrumbs)==''){
+		$(".breadCrumbs").html("<b  style='font-size:13px;font-weight: normal;' class='pull-right'> "+$("#dateTime").val()+" <span class='breadCrumbs_timestamp' style='margin-left:5px;'>"+time+"<span></b>");
+	}
+	$('.breadCrumbs_timestamp').text(time);
+}
+
+var menuShortcutId;
+var pid;
+var boiler;
+var firstTimebreadCrumbs = "";
+var shrtBoiler="";
+$(document).ready(function() {
+	var isForShortcut = false;
+	getMenuList(isForShortcut);
+});
+
+
+function getMenuList(isForShortcut){
+	var redirectStatusHideMenuProp = $("#redirectStatusHideMenuProp").val();
+	var redirectStatusHideMenu = $("#redirectStatusHideMenu").val();
+	if(redirectStatusHideMenu!=undefined && redirectStatusHideMenuProp == "true"){
+		return;
+	}
+	var i_menuName = 0;
+	var i_menuLink = 1;
+	var i_menuMasterId = 2;
+	var i_menuSuperMasterId = 3;
+	var i_menuShortcutMappingId = 4;
+	var i_children = 5;
+	
+	var title1=document.title;
+	var buildItem = function(item){
+		var html ='<li>'+'<a menuShortcutId="'+item[i_menuShortcutMappingId]+'" pid="'+item[i_menuMasterId]+'" href="'+item[i_menuLink]+'">'+item[i_menuName]+'</a>';
+		if (item[i_children]) {		    	
+			html += "<ul>";
+			$.each(item[i_children], function (index, sub) {
+				html += buildItem(sub);
+			});
+			html += "</ul>";
+		}
+		html += "</li>";
+
+		/***Add link in Shortcut***/
+		if(item[i_menuShortcutMappingId]!=0 && item[i_menuShortcutMappingId]!=undefined){
+			shrtBoiler = '<li id='+item[i_menuShortcutMappingId]+' class="shortcutMenuLink"><a menuShortcutId="'+item[i_menuShortcutMappingId]+'" pid="'+item[i_menuMasterId]+'" href="'+item[i_menuLink]+'" class="j-fa fa-bookmark-o">'+item[i_menuName]+'</a></li>';
+			$('#shortcutMenuLinDiv').after(shrtBoiler);
+		}
+		/******/
+		return html;
+	};
+	var generateTree = function(jArray){
+		var obj=jArray;
+		//boiler += '<li>'+'<a menushortcutid="0" pid="20001" href="#" style="padding-right: 23px;">----Manu</a><ul>';
+		$.each(obj, function (index, item) {
+			boiler +=buildItem(item);
+		});
+        
+        
+		//boiler += '</ul></li>'
+	};
+	
+	apiCall_getMenuListByRoleDBMin(isForShortcut).then(function(jArray){
+			
+		    boiler = ''+//<a class="animateddrawer" id="ddsmoothmenu-mobiletoggle" href="#"><span></span>
+			'<div id="global-nav-id" class="ddsmoothmenu">'+
+			'<ul>'; 
+			generateTree(jArray);	
+			boiler +='</ul></div>';
+			$('#menuRole').html(boiler);	
+			ddsmoothmenu.init({
+				mainmenuid: "global-nav-id", //menu DIV id
+				orientation: 'h', //Horizontal or vertical menu: Set to "h" or "v"
+				classname: 'ddsmoothmenu', //class added to menu's outer DIV
+				//customtheme: ["#1c5a80", "#18374a"],
+				contentsource: "markup" //"markup" or ["container_id", "path_to_menu_file"]
+			});
+
+			 $(document).ready(
+					function() {
+						$(".breadCrumbs").text('');
+						var loc = window.location.href;
+						loc = loc.substring(loc.lastIndexOf('/') + 1);
+						var currentObject = $('#global-nav-id').find('a[href ="' + loc + '"]').eq(0);
+						var breadCrum = new Array();
+						breadCrum.push(currentObject.text());
+						console.log($(currentObject).attr("pid"));
+						pid = $(currentObject).attr("pid");
+						menuShortcutId = $(currentObject).attr("menuShortcutId");
+						while (currentObject.parent().parent().prev().prop('tagName') == 'A') {
+							breadCrum.push(currentObject.parent().parent().prev().text());
+							currentObject = currentObject.parent().parent().prev();
+						}
+						var temp = new Array();
+						var i = 0;
+						var j = breadCrum.length;
+						while (i < j) {
+							temp.push(breadCrum.pop());
+							i++;
+						}
+						$(".breadCrumbs").html(temp.join(" <i class='fa fa-angle-double-right'></i><i style=\"color: transparent;margin-left: -6px;\">&raquo;</i> "));
+						firstTimebreadCrumbs = temp.join(" <i class='fa fa-angle-double-right'></i><i style=\"color: transparent;margin-left: -6px;\">&raquo;</i> ");
+						if(firstTimebreadCrumbs==""){
+							firstTimebreadCrumbs=title1;
+						}
+					});
+	});
+}
+
+function apiCall_getMenuListByRoleDBMin(isForShortcut){
+	return new Promise((resolve, reject)=>{
+		//window.api_masterMenuList
+		if(window.api_masterMenuList==undefined){
+			var hdnUserRole = $('#hdnUserRole').val();
+			var url = 'getMenuListByRoleDBMin.json?isForShortcut='+isForShortcut;
+			if(hdnUserRole == "student" || hdnUserRole == "Student"){
+				url = 'stu_getMenuListByRoleDBMin.json?isForShortcut='+isForShortcut;
+			}
+			$.ajax({
+				url : url,
+				dataType : 'json',
+				async:true,
+				beforeSend : function() {
+					startCommonAjaxSpinner();
+				},
+				complete : function() {
+					stopCommonAjaxSpinner();
+				},
+				success : function(jArray) 
+				{
+					resolve(jArray);
+				},
+				error:function(){
+					jAlert("Error...!");
+				}
+			});
+		}else{
+			resolve(window.api_masterMenuList);
+		}
+	});
+}
+
+$(document).ready(function() {
+	
+	var loc = window.location.href;
+	loc = loc.substring(loc.lastIndexOf('/') + 1);
+	var currentObject = $('#global-nav-id').find('a[href ="' + loc + '"]');
+	if(currentObject.text()!="")
+		document.title = currentObject.text();
+	else{
+		try{
+			var title1=document.title;
+			title1=title1.replace(/GEMS - /g, '').replace(/GEMS /g, '').replace(/GEMS/g, '').replace(/gems/g, '');
+			document.title=title1;
+		}catch(e){}
+	}
+	console.log(loc);
+});
+
+function addMenuInShortcut(){
+	var menuMasterId = $('#selectedMenuId').attr('value');
+	var isForShortcut = true;
+	$.ajax({
+		url:'addSelectedMenuInShortcut.json?menuMasterId='+menuMasterId,
+		dataType:'json',
+		async:false,
+		beforeSend:function() {
+			//startCommonAjaxSpinner();
+		},
+		complete: function() {         
+			//stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			$('.shortcutMenuLink').remove(); 
+			getMenuList(isForShortcut);
+		},
+		error:function(){
+			getCustomAlertMessage("alert_error");
+		}
+	});
+}
+
+function deleteMenuInShortcut(){
+	var menuMasterId = $('#selectedMenuId').attr('value');
+	var isForShortcut = true;
+	$.ajax({
+		url:'deleteSelectedMenuInShortcut.json?menuMasterId='+menuMasterId,
+		dataType:'json',
+		async:false,
+		beforeSend:function() {
+			//startCommonAjaxSpinner();
+		},
+		complete: function() {         
+			//stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			$('.shortcutMenuLink').remove(); 
+			getMenuList(isForShortcut);
+		},
+		error:function(){
+			getCustomAlertMessage("alert_error");
+		}
+	});
+}
+
+function dropLinkFromShortcut(ev) {
+    ev.preventDefault();
+    var data = ev.dataTransfer.getData("text");
+    ev.target.appendChild(document.getElementById(data));
+}
+
+</script>
+
+</div>
+</div>
+<!-- /header-nav -->
+
+<!-- ============================================================= -->
+
+<script type="text/javascript">
+
+const createTokenTransportOnLoad = async ()=>{
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(),1000);
+	try{
+		fetch(window.location.origin + "/getLoggedInUserDetails.json",{
+			credentials: "include",
+			headers:{
+				"x-api-key":'juno-api-key',
+			},
+			signal:controller.signal,
+		})
+		  .then((res) => res.json())
+		  .then((data)=>{
+			  if(data){
+				  const id = data["id"];
+				  document.cookie = "userId=" + id.replace('\"','').replace('\"','');
+				  localStorage.setItem('user', JSON.stringify(data));
+			  }
+			  fetch(window.location.origin + "/api/v1/transport/token/generate", {
+				  method: "POST",
+				  headers: {
+					  credentials: "include",
+					  "Content-Type": "application/json",
+					  "x-api-key": 'juno-api-key',
+				  },
+				  signal: controller.signal,
+				  body: JSON.stringify({ junoCampusUserId: data.id }),
+			  })
+				.then((response)=> response.text())
+				.then((data)=>{
+					document.cookie = "authorization=" + data;
+					fetch(window.location.origin+"/api/v1/transport/user/role",{
+							  headers: {
+								  credentials: "include",
+								  "authorization": data,
+								  "Content-Type": "application/json",
+								  "x-api-key": 'juno-api-key',
+							  }
+					}).then((res)=>res.json()).then((role)=>{
+							 if(role.length > 0){
+								 role.map((rol)=>{
+									 if(rol.toUpperCase() === "CREW"){
+										 $('#transportV2Crew').html(`<a style="cursor: pointer" onclick = "createTokenTransport('crew')" >Transport v2 Crew</a>`);
+									 }
+									 if(rol.toUpperCase() === "ADMIN"){
+										 $('#transportV2Admin').html(`<a style="cursor: pointer" onclick = "createTokenTransport('admin')" >Transport v2 Admin</a>`);
+									 }
+								 })
+
+							 }
+					})
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					if (data) {
+						// todo: fetch() config
+					}
+				});
+		  });
+	}catch(error){
+		console.error(error)
+	}finally {
+		clearTimeout(timeoutId);
+	}
+}
+
+
+const createTokenTransport = async (defaultRole) => {
+	  const controller = new AbortController();
+	  const timeoutId = setTimeout(() => controller.abort(), 1000);
+	  try {
+	    fetch(window.location.origin + "/getLoggedInUserDetails.json", {
+	      credentials: "include",
+	      headers: {
+	        "x-api-key":'juno-api-key',
+	      },
+	      signal: controller.signal,
+	    })
+	      .then((res) => res.json())
+	      .then((data) => {
+	    	if(data){ 
+				const id = data["id"];
+				document.cookie = "userId=" + id.replace('\"','').replace('\"','');
+				localStorage.setItem('user', JSON.stringify(data));
+			}
+	        fetch(window.location.origin + "/api/v1/transport/token/generate", {
+	          method: "POST",
+	          headers: {
+	            credentials: "include",
+	            "Content-Type": "application/json",
+	            "x-api-key": 'juno-api-key',
+	          },
+	          signal: controller.signal,
+	          body: JSON.stringify({ junoCampusUserId: data.id }),
+	        })
+	          .then((response) => response.text())
+	          .then((data) => {
+	            document.cookie = "authorization=" + data;
+	            fetch(window.location.origin+"/api/v1/transport/user/role",{
+					  headers: {
+	  		            credentials: "include",
+	  		            "authorization": data,
+	  		            "Content-Type": "application/json",
+	  		            "x-api-key": 'juno-api-key',
+	  		          }
+				  }).then((res)=>res.json()).then((role)=>{
+					  if(role.length > 0){
+						  if(defaultRole){
+							  localStorage.setItem("role", defaultRole);
+							  window.location.href = '/transport/'+defaultRole+'/dashboard.html';
+						  }else{
+							  window.location.href = '/transport/'+role[0].toLowerCase()+'/dashboard.html';
+						  }
+					  }
+				  })
+	            fetch(window.location.origin + "/api/v1/transport/user/id", {
+	  		          headers: {
+	  		            credentials: "include",
+	  		            "authorization": data,
+	  		            "Content-Type": "application/json",
+	  		            "x-api-key": 'juno-api-key',
+	  		          },}).then(res=>res.text()).then(id =>{
+						document.cookie = "userId=" + id.replace('\"','').replace('\"','');
+					})	            
+	            if (data) {
+	              // todo: fetch() config
+	            }
+	          });
+	      });
+	  } catch (error) {
+	    console.error(error);
+	  } finally {
+	    clearTimeout(timeoutId);
+	  }
+	};
+		
+	const createTokenWorkflow = async () => {
+		  const controller = new AbortController();
+		  const timeoutId = setTimeout(() => controller.abort(), 1000);
+		  try {
+			 fetch(window.location.origin + "/getLoggedInUserDetails.json", {
+		      credentials: "include",
+		      headers: {
+		        "x-api-key":'juno-api-key',
+		      },
+		      signal: controller.signal,
+		    }).then(res=>res.json()).then(data=> {
+				if(data){ const id = data["id"];
+					document.cookie = "userId=" + id.replace('\"','').replace('\"','');
+				localStorage.setItem('user', JSON.stringify(data));
+				}
+				
+		    }).finally(()=>{
+		    	window.location.href = "/workflow/user.html"
+		    })
+		    
+		  } catch (error) {
+		    console.error(error);
+		  } finally {
+		    clearTimeout(timeoutId);
+		  }
+		};
+		
+		const createTokenDMS = async () => {
+			  const controller = new AbortController();
+			  const timeoutId = setTimeout(() => controller.abort(), 1000);
+			  try {
+				 fetch(window.location.origin + "/getLoggedInUserDetails.json", {
+			      credentials: "include",
+			      headers: {
+			        "x-api-key":'juno-api-key',
+			      },
+			      signal: controller.signal,
+			    }).then(res=>res.json()).then(data=> {
+					if(data){ const id = data["id"];
+						document.cookie = "userId=" + id.replace('\"','').replace('\"','');
+					localStorage.setItem('user', JSON.stringify(data));
+
+					const bucketName = data["bucket-name"];
+					document.cookie = "bucket-name=" + bucketName.replace('\"','').replace('\"','');
+					}
+					
+					
+			    }).finally(()=>{
+			    	window.location.href = "/dms/my-files.html"
+			    })
+			    
+			  } catch (error) {
+			    console.error(error);
+			  } finally {
+			    clearTimeout(timeoutId);
+			  }
+			};
+</script>
+
+
+<script type="text/javascript">
+
+		
+ var cntTime=0;
+ var int=self.setInterval(function(){clock();},300000);
+ function clock()
+ {
+	//window.load=getUnreadMessageAndAnnouncement();
+	window.load=notify();
+	//window.load=updateAllStudentforSearchCommon();
+ }
+ var gLocalIP='';
+ var gPublicIP='';
+ function notify(){
+	
+		var myIP = ''; 
+		window.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;   //compatibility for firefox and chrome
+	    var pc = new RTCPeerConnection({iceServers:[]}), noop = function(){};      
+	    pc.createDataChannel("");    //create a bogus data channel
+	    pc.createOffer(pc.setLocalDescription.bind(pc), noop);    // create offer and set local description
+	    pc.onicecandidate = function(ice){  //listen for candidate events
+	        if(!ice || !ice.candidate || !ice.candidate.candidate)  return;
+	    if(/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)!=null){
+	    	 gLocalIP = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)[1];
+	    }
+	       
+	    	$.get("https://api.ipify.org/",function(data){
+	    		var localIPDecimal = gLocalIP.toString();
+	    		if(gLocalIP.toString()!='')
+	        		localIPDecimal = (parseInt(localIPDecimal.split(".")[0]) * parseInt(Math.pow(256,3))) + (parseInt(localIPDecimal.split(".")[1]) * parseInt((256*256))) + (parseInt(localIPDecimal.split(".")[2]) * parseInt(256)) + (parseInt(localIPDecimal.split(".")[3])); 
+	        	var browser = navigator.appCodeName +" "+ navigator.appName + " " + navigator.appVersion + "("+navigator.userAgent+")";
+	        	var platform = navigator.platform;
+	        	window.browserName= "-";
+	        	var browserList = ['Chrome','Firefox','Safari','Opera','IE','OPR'];
+	        	for(var i = 0; i<browserList.length;i++){if(navigator.userAgent.indexOf(browserList[i]) != -1 ){window.browserName = browserList[i]=="OPR"?"Opera":browserList[i];break;}}
+	    		gPublicIP=data.replace(/(?:\r\n|\r|\n)/g,'')
+	    		var publicIPDecimal = gPublicIP.toString();
+	        	publicIPDecimal = (parseInt(publicIPDecimal.split(".")[0]) * parseInt(Math.pow(256,3))) + (parseInt(publicIPDecimal.split(".")[1]) * parseInt((256*256))) + (parseInt(publicIPDecimal.split(".")[2]) * parseInt(256)) + (parseInt(publicIPDecimal.split(".")[3])); 
+	        	var hdnUserRole = $('#hdnUserRole').val();
+	        	var url = 'getServerUserNotification.json';
+	        	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+	        		url = 'stu_getServerUserNotification.json';
+	        	}
+	        	$.ajax({
+	    			url : url,
+	    			data : {b:browser,p:platform,pipa:publicIPDecimal,lipa:localIPDecimal,bName:window.browserName},
+	    			dataType : 'json',
+	    			type : 'POST',
+	    			success : function(jArray) {
+	
+	    				if (jArray.length > 0) {
+	    					var flagType = jArray[0]["flagType"];
+	    					var message = decodeURIComponent(jArray[0]["message"]);
+	    					var blockUI = jArray[0]["blockUI"];
+	    					$("#serverNotificationBar").html('<center><b style ="font-size:13px;text-align:center;">'+message+'</b>'+
+	    					'<i title="Dismiss" class="fa fa-window-close" style="float:right;width:40px;margin-top:-10px" onclick="$(\'#serverNotificationBar\').hide()"></center>');
+	    					
+	    					if (flagType == "success"){
+	    						$("#serverNotificationBar").show();
+	    						$("#serverNotificationBar").css('background-color', '#DFF0D8');//green color
+	    					}else if(flagType == "backup"){
+	    						$("#serverNotificationBar").show();
+	    						$("#serverNotificationBar").css('background-color', '#F2DEDE');//red color
+	    					}else 
+	    						$("#serverNotificationBar").hide();
+	    					$("#serverNotificationBar").css('color', '#000000');
+	    				}else{
+	    					$("#serverNotificationBar").hide();
+	    				}
+	
+	    			},
+	
+	    		});
+	    	});
+	    	
+	        pc.onicecandidate = noop;
+	    };	
+	
+	
+	}
+	function getUnreadMessageAndAnnouncement() {
+		$.ajax({
+			url : 'getUnreadMessageAndAnnouncement.json',
+			dataType : 'json',
+			success : function(jArray) {
+				if (jArray[0]["count"] == 0)
+					$("#NoticeCounter").hide();
+				else
+					$("#NoticeCounter").html(jArray[0]["count"]).show();
+
+				if (jArray[0]["dutyCount"] == 0)
+					$("#DutiesCounter").hide();
+				else
+					$("#DutiesCounter").html(jArray[0]["dutyCount"]).show();
+
+				if (jArray[0]["inboxCount"] == 0)
+					$("#InboxCounter").hide();
+				else
+					$("#InboxCounter").html(jArray[0]["inboxCount"]).show();
+
+				$("#countAnnouncement").html(jArray[0]["count"]).show();
+			},
+		});
+	}
+
+	function setAllUnreadMessagesAndAnnouncementsAsRead() {
+		$.ajax({
+			url : 'setAllUnreadAnnouncementsAndMessagesAsRead.json',
+			async : false,
+			beforeSend : function() {
+				startCommonAjaxSpinner();
+			},
+			complete : function() {
+				stopCommonAjaxSpinner();
+			},
+			success : function() {
+				getUnreadMessageAndAnnouncement();
+			},
+			error : function() {
+			}
+		});
+	}
+	/*function updateAllStudentforSearchCommon()
+	{
+		$.ajax({
+			url:'createStudentSearchMasterData.json',
+			data:'',
+			dataType:'json',
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+				
+			}
+		});
+	}*/
+	$(document).ready(function() {
+		clock();
+	});
+</script>
+	
+	
+	
+ 
+<script> 
+function popupForAutomaticLogin(){	
+	 var pathname = window.location.href.substring(0, window.location.href.lastIndexOf("/"));
+     $.ajax({
+            url:'getQRCodeGenerateForAppLogin.json',
+            data:{pathname:pathname},
+            dataType:'json',
+			beforeSend: function() {startCommonAjaxSpinner();},
+			complete: function() {stopCommonAjaxSpinner();},
+			success:function(jObj){
+				if (jObj.QRImg != undefined) {$('#MobileAppAutoLoginQRImg').html(jObj.QRImg);$('#MobileAppAutoLoginModel').modal('show');}
+				if (jObj.mailUrl != undefined) {$('#MobileAppAutoLoginUsrnameUrl').html(jObj.mailUrl);}
+			}
+	});
+} 
+
+if(window.juno==undefined) window.juno = {};window.juno.label = {};window.juno._currency_code = 'INR';window.juno._currency_symbol = '&#8377;';window.juno._is_tax_applicable = true;window.juno._isRoundCurrencyValue = false;window.juno._format_date = 'MM dd, YYYY';window.juno._format_time = 'hh:mm a';window.juno._format_datetime = 'MM dd, YYYY hh:mm a';juno.label['applicant.welcomePage.lblLogged'] = 'You are logged in as';juno.label['l.leaveOrNightout'] = 'Leave \/ Night Out';juno.label['l.submit'] = 'Submit';juno.label['user.lastName'] = 'Last Name';juno.label['userProfile.accountSettings'] = 'Account Settings';juno.label['login.username'] = 'Please enter your user name.';juno.label['login.passwordHint.sent'] = '&nbsp;&nbsp;The password for {0} has been sent to {1}.<br\/>';juno.label['applicant.welcomePage.ctPiInstructions'] = '<p><b>Thank you for booking your Selection Process slot. Please check your email inbox for the call letter. Please do check your spam\/junk folder in case you do not find the email in the inbox.<\/b><\/p>';juno.label['SRHU.l.Customerwise.TermStatus.Label'] = 'Annual\/Semester\/Prof. Status';juno.label['webapp.name'] = 'LAB';juno.label['l.studName'] = 'Student Name';juno.label['user.passwordHint'] = 'Password Hint';juno.label['menu.admin.reload'] = 'Reload Options';juno.label['CMR.UNIVERSITY.l.StudentPayable'] = 'Student Excess fee paid';juno.label['button.cancel'] = 'Cancel';juno.label['applicant.welcomePage.isProvisionalOfferName'] = 'Provisional Offer';juno.label['menu.admin'] = 'Administration';juno.label['user.id'] = 'Id';juno.label['organizationlevel.campus'] = '2';juno.label['l.AdmissionCancellation'] = 'Admission Cancellation';juno.label['postType.adhocNonTeaching'] = 'Adhoc Non Teaching';juno.label['CMR.UNIVERSITY.l.StudentReceivable'] = 'Student Outstanding';juno.label['App.IMT_DUBAI_SERVER.CurrencyCode'] = 'AED';juno.label['applicant.welcomePage.isApplicantProvisionalHeader'] = 'PROVISIONAL OFFERS';juno.label['activeUsers.fullName'] = 'Full Name';juno.label['signup.heading'] = 'New User Registration';juno.label['applicant.welcomePage.lblStartAppl'] = 'Start Application';juno.label['INDIRA_PUNE.AdmissionUIDConfig'] = 'true';juno.label['applicant.welcomePage.lblProvisionalOffer'] = 'My Provisional Offer';juno.label['signup.email.message1'] = 'Welcome';juno.label['icon.warning.img'] = '\/images\/iconWarning.gif';juno.label['CMR.UNIVERSITY.l.Customerwise.PrereadPreclassActivity.Label'] = 'Pre read\/Pre class activity (Pre Work)';juno.label['display.coursefile.name'] = 'Course File';juno.label['signup.email.register.message'] = 'You have successfully registered for access. You have give rights for below roles. Your username and password information is below.';juno.label['applicant.welcomePage.lblDescription'] = 'Description :';juno.label['login.changepassword'] = '&nbsp;&nbsp;<a href=\".\/changepassword\" >Change Password<\/a>';juno.label['customerHelper.HPTELIBRARY.employee.profile'] = 'DYPATIL';juno.label['applicant.welcomePage.lblFirstName'] = 'First Name';juno.label['applicant.welcomePage.showFinalRoundBtn'] = 'false';juno.label['user.username'] = 'Username';juno.label['l.en.firstName'] = 'First Name';juno.label['applicant.welcomePage.lblRejected'] = 'Rejected';juno.label['user.roles'] = 'Current Roles';juno.label['user.logout'] = 'Logout';juno.label['roleForm.name'] = 'Name';juno.label['a.stu_download.json'] = '<a href=\"stu_download.json?id={0}&type={1}&name={2}\" target=\"_blank\"> {3} <\/a>';juno.label['webapp.version'] = 'Version ${pom.version}';juno.label['CMR.IT.l.StudentPayable'] = 'Student Excess fee paid';juno.label['userProfile.cookieLogin'] = 'You cannot change passwords when logging in with the Remember Me feature.  Please logout and log back in to change passwords.';juno.label['l.subLedger'] = 'Sub Ledger';juno.label['App.IMT_DUBAI_SERVER.isTaxApplicable'] = 'false';juno.label['display.employeeServiceBook.Permanent'] = 'Permanent';juno.label['l.Customerwise.UniqueId.Label'] = 'Student Unique Id';juno.label['applicant.welcomePage.secondMeritShow'] = '0';juno.label['applicant.welcomePage.lblUploadImage'] = 'Upload Profile Image';juno.label['mainMenu.message'] = 'Congratulations, you have logged in successfully!  Now that you\'ve logged in, you have the following options:';juno.label['applicant.welcomePage.btnEdit'] = 'Upload Profile And Signature Image';juno.label['CMR.IT.l.StudentReceivable'] = 'Student Outstanding';juno.label['student.status.rusticated'] = 'Rusticated';juno.label['SRHU.l.Customerwise.TermName.Label'] = 'Annual\/Semester\/Prof. Name';juno.label['JGI.l.streamName'] = 'Faculty Name';juno.label['user.accountExpired'] = 'Expired';juno.label['l.academicBatch'] = 'Academic Batch';juno.label['postType.nonTeachingManagement'] = 'Non Teaching Management';juno.label['applicant.welcomePage.lblApproved'] = 'Approved';juno.label['user.availableRoles'] = 'Available Roles';juno.label['postType.teaching'] = 'Teaching';juno.label['customerHelper.HPNLU.employee.profile'] = 'RCOEM';juno.label['label.username'] = 'Username';juno.label['button.copy'] = 'Copy';juno.label['display.employeeServiceBook.Adhoc'] = 'Adhoc';juno.label['button.upload'] = 'Upload';juno.label['CMR.UNIVERSITY.l.Customerwise.RollNo.Label'] = 'Registration No.';juno.label['userList.nousers'] = '<span>No users found.<\/span>';juno.label['user.accountLocked'] = 'Locked';juno.label['applicant.welcomePage.btnClose'] = 'Close';juno.label['CMR.UNIVERSITY.l.ComedkCetNo'] = 'KCET\/ ComedK-TAT\/ PGCET No';juno.label['student.status.pursuing'] = 'Pursuing';juno.label['applicant.welcomePage.ssoLinkName'] = 'SSO Link';juno.label['CMR.UNIVERSITY.l.Customerwise.APO.Label'] = 'Director\/Dean';juno.label['applicant.welcomePage.lblContinue'] = 'Continue Application';juno.label['customerHelper.MGMU.employee.profile'] = 'RCOEM';juno.label['login.heading'] = 'Login';juno.label['signup.email.message.indira'] = 'You have successfully registered for Indira ERP access.  Your username and password information is below.';juno.label['l.Customerwise.PostClassActivity.Label'] = 'Post Class Activity';juno.label['student.status.left'] = 'Left';juno.label['signup.sms.message.RCOEM'] = 'You have successfully registered for Admission Request Form (ARF) access.';juno.label['a.download.json'] = '<a href=\"documentDownload.json?id={0}&type={1}&name={2}\" target=\"_blank\"> {3} <\/a>';juno.label['l.streamName'] = 'Stream Name';juno.label['activeUsers.title'] = 'Active Users';juno.label['CMR.UNIVERSITY.l.SponsorshipReceivable'] = 'Scholarship Applied';juno.label['CMR.UNIVERSITY.l.Customerwise.PostClassActivity.Label'] = 'Assesment \/ Post Work';juno.label['signup.email.message'] = 'You have successfully registered for access.  Your username and password information is below.';juno.label['CMR.IT.l.SchoolInstitute'] = 'School';juno.label['button.view'] = 'View';juno.label['customerHelper.HPTU.employee.profile'] = 'DYPATIL';juno.label['login.passwordHint.error'] = '&nbsp;&nbsp;The username {0} is not registered with us.<br\/>';juno.label['user.firstName'] = 'First Name';juno.label['applicant.welcomePage.lblConcession'] = 'Concession';juno.label['applicant.welcomePage.lblOfferLetter'] = 'Offer Letter';juno.label['signup.title'] = 'Sign Up';juno.label['applicant.welcomePage.btnPIProcess'] = 'Registration & CTPI Process';juno.label['student.status.alumni'] = 'Alumni';juno.label['applicant.welcomePage.lblProcessnot'] = 'Programs are not selected yet';juno.label['req.field'] = '<strong style=\"color:red;\">*<\/strong>';juno.label['icon.warning'] = 'Warning';juno.label['JGI.l.streamAbbreviation'] = 'Faculty Abbreviation';juno.label['l.SponsorshipReceivable'] = 'Sponsorship Receivable';juno.label['l.Customerwise.TermNo.Label'] = 'No. of Term';juno.label['icon.email'] = 'E-Mail';juno.label['user.address.country'] = 'Country';juno.label['userProfile.title'] = 'User Settings';juno.label['applicant.welcomePage.lblMiddleName'] = 'Middle Name';juno.label['customerHelper.VCET.employee.profile'] = 'MIT';juno.label['dms.documentcategory.type4'] = 'notice';juno.label['dms.documentcategory.type3'] = 'announcement';juno.label['dms.documentcategory.type2'] = 'communication';juno.label['icon.information.img'] = '\/images\/iconInformation.gif';juno.label['customerHelper.WESCHOOL.employee.profile'] = 'IMT_GAZIABAD';juno.label['dms.documentcategory.type1'] = 'dms';juno.label['l.Customerwise.APO.Label'] = 'APO';juno.label['button.save'] = 'Save';juno.label['mainMenu.title'] = 'Main Menu';juno.label['url.download.json'] = 'documentDownload.json?id={0}&type={1}&name={2}';juno.label['button.login'] = 'Login';juno.label['button.register'] = 'Signup';juno.label['l.roomNo'] = 'Room No.';juno.label['postType.teachingManagement'] = 'Teaching Management';juno.label['l.Customerwise.RollNo.Label'] = 'Roll No';juno.label['company.name'] = 'Lab';juno.label['signup.email.subject'] = 'HEMS welcome Message';juno.label['user.phoneNumber'] = 'Phone Number';juno.label['applicant.welcomePage.lblReviewEnr'] = 'View Enrollment';juno.label['l.errorMsg'] = 'Sorry, something went wrong. Please try again, or refresh the page';juno.label['l.emgContact'] = 'Emergency Contact';juno.label['BLU.CustomerName'] = 'BML Munjal University';juno.label['login.rememberMe'] = 'Remember Me';juno.label['postType.nonteaching'] = 'Non Teaching';juno.label['date.format'] = 'MM\/dd\/yyyy';juno.label['l.reason'] = 'Reason';juno.label['mainMenu.heading'] = 'Welcome!';juno.label['login.signup'] = 'Not a member? <a href=\"{0}\">Signup<\/a> for an account.';juno.label['SRHU.l.Customerwise.UniqueId.Label'] = 'Unique No. \/ Enrollment No.';juno.label['l.StudentReceivable'] = 'Student Receivable';juno.label['UnivirsityExamForm.INDIRA_PUNE.btn_show'] = 'true';juno.label['button.delete'] = 'Delete';juno.label['userProfile.message'] = 'Please update your information using the form below.';juno.label['CMR.IT.l.admissionOrderNo'] = 'Admission Order no.\/ TAT no.';juno.label['userProfile.assignRoles'] = 'Assign Roles';juno.label['applicant.welcomePage.lblUnderReview'] = 'Under Review';juno.label['applicant.welcomePage.lblReview'] = 'View Application';juno.label['display.employeeServiceBook.Contract'] = 'Contract ';juno.label['applicant.welcomePage.isProfileImgMandatory'] = '1';juno.label['applicant.welcomePage.lblCompleted'] = 'Completed';juno.label['user.visitWebsite'] = 'visit';juno.label['SRHU.l.Customerwise.Term.Label'] = 'Annual\/Semester\/Prof.';juno.label['JGI.l.Customerwise.RollNo.Label'] = 'USN';juno.label['NITIE.l.isInvoceToFeesLabel'] = 'Fees';juno.label['display.employeeServiceBook.Probation'] = 'Probation ';juno.label['userList.heading'] = 'Current Users';juno.label['applicant.welcomePage.lblUploadSign'] = 'Upload Signature';juno.label['menu.selectFile'] = 'Upload A File';juno.label['App.REVA_UNIVERSITY.satisfactionLevelColumn'] = 'true';juno.label['customerHelper.REVA_UNIVERSITY.employee.profile'] = 'RCOEM';juno.label['activeUsers.message'] = 'The following is a list of users that have logged in and their sessions have not expired.';juno.label['postType.contractualFaculty'] = 'Contractual Faculty';juno.label['login.password'] = 'Please enter your password.';juno.label['l.from.time'] = 'From Time';juno.label['menu.admin.users'] = 'View Users';juno.label['userProfile.showMore'] = 'View More Information';juno.label['postType.visitingFaculty'] = 'Visiting Faculty';juno.label['l.to.time'] = 'To Time';juno.label['userProfile.admin.message'] = 'You can update this user\'s information using the form below.';juno.label['l.SubjectCourse'] = 'Course';juno.label['SRHU.l.Customerwise.TermNo.Label'] = 'Annual\/Semester\/Prof. No.';juno.label['NIET.l.Customerwise.UniqueId.Label'] = 'ERP ID';juno.label['UnivirsityExamForm.DYPATIL.btn_show'] = 'true';juno.label['postType.committee'] = 'Committee';juno.label['customerHelper.SIES.employee.profile'] = 'ABS';juno.label['l.from.date'] = 'From Date';juno.label['mainMenu.activeUsers'] = 'Current Users';juno.label['applicant.welcomePage.btnLogout'] = 'Logout';juno.label['applicant.welcomePage.lblApplyFinalRound'] = 'Apply For Final Round';juno.label['user.address.province'] = 'State';juno.label['l.to.date'] = 'To Date';juno.label['coordinationschema.semester'] = 'semester';juno.label['applicant.welcomePage.lblCourses'] = 'Courses :';juno.label['button.done'] = 'Done';juno.label['student.status.blocked'] = 'Blocked ';juno.label['SRHU.l.Customerwise.RollNo.Label'] = 'Roll No. \/ Registration No. ';juno.label['MGMU.AdmissionUIDConfig'] = 'true';juno.label['user.email'] = 'E-Mail';juno.label['url.stu_download.json'] = 'stu_download.json?id={0}&type={1}&name={2}';juno.label['signup.email.role.message'] = 'Your role(s) has been successfully updated.';juno.label['applicant.welcomePage.lblApplicantionProcess'] = 'Your application is under process.';juno.label['CMR.IT.l.Customerwise.RollNo.Label'] = 'USN';juno.label['applicant.welcomePage.heading'] = 'Welcome to ${customerName}';juno.label['user.address.postalCode'] = 'Zip';juno.label['signup.sms.message.indira'] = 'You have successfully registered for Indira ERP access.';juno.label['user.status'] = 'Logged in as: ';juno.label['l.admissionOrderNo'] = 'Admission Order No';juno.label['CMR.UNIVERSITY.l.admissionOrderNo'] = 'CET Admission Order No\/ComedK Application Number';juno.label['userList.title'] = 'User List';juno.label['applicant.welcomePage.instructions'] = '<ul><li>By submitting this application form, you confirm that you are requesting admission to a UCW educational program (\u201CProgram\u201D) and are providing the above information about you (your \u201Cpersonal data\u201D) for these purposes. UCW requires this information for legitimate business purposes, and, at your request, in order to make decisions about your admission to the Program.<\/li> <li> Your personal data will be collected, used and disclosed only for these purposes and, in the event you are admitted to the Program, to manage your enrollment and attendance at UCW, including registration, maintenance of your student records, the provision of related services to you; and for other purposes related to your participation in the Program and our evaluation and improvement of the Program.<\/li><li>Failure to provide complete or accurate information may result in UCW\u2019s inability to process your application.<\/li><\/b><\/ul>';juno.label['l.StudentPayable'] = 'Student Payable';juno.label['button.reset'] = 'Reset';juno.label['button.search'] = 'Search';juno.label['organizationlevel.trust'] = '1';juno.label['user.credentialsExpired'] = 'Password Expired';juno.label['l.termSemester'] = 'Term';juno.label['applicant.welcomePage.scoreCardShow'] = '0';juno.label['customerHelper.SPIT.employee.profile'] = 'ICT_MUMBAI';juno.label['applicant.welcomePage.lblReadmore'] = 'Read more...';juno.label['applicant.welcomePage.isSsoLinkShow'] = 'false';juno.label['applicant.welcomePage.lblContinueEnr'] = 'Continue Enrollment';juno.label['user.confirmPassword'] = 'Confirm Password';juno.label['CMR.IT.l.ComedkCetNo'] = 'CET \/ Comedk no.';juno.label['applicant.welcomePage.lblAvailableProgram'] = 'AVAILABLE PROGRAMS';juno.label['l.ProgramDepartment'] = 'Programme';juno.label['CMR.UNIVERSITY.l.SchoolInstitute'] = 'School';juno.label['fas.accounthead.type4'] = 'LIABILITY';juno.label['fas.accounthead.type3'] = 'ASSET';juno.label['signup.message'] = 'Please enter your user information in the form below.';juno.label['fas.accounthead.type2'] = 'EXPENSE';juno.label['fas.accounthead.type1'] = 'INCOME';juno.label['applicant.welcomePage.myapplication'] = 'MY APPLICATIONS ';juno.label['company.url'] = '';juno.label['student.status.yeardown'] = 'Year down';juno.label['userProfile.heading'] = 'User Profile';juno.label['webapp.tagline'] = 'Bringing Labs Online.';juno.label['BITS_MESRA.l.subLedger'] = 'Sub Category';juno.label['user.enabled'] = 'Enabled';juno.label['user.address.city'] = 'City';juno.label['l.Customerwise.Term.Label'] = 'Term';juno.label['applicant.welcomePage.lblDiscrepancy'] = 'Discrepancy found.';juno.label['l.studPersonalDetail'] = 'Student Personal Information';juno.label['login.title'] = 'Login';juno.label['user.website'] = 'Website';juno.label['organizationlevel.institute'] = '3';juno.label['applicant.welcomePage.slotInstructions'] = '<ul><b><li>Develop and sharpen speaking and interpersonal skills.<\/li> <li> Prepare thoroughly on current affairs\/topics.<\/li> <li> Learn to analyze the subject and argue while adhering to the time limit.<\/li> <li> Allow someone else to start the topic unless you are fully prepared.<\/li> <li> Listen carefully to others. You may quote other while supporting your argument.<\/li><\/ul>';juno.label['l.Customerwise.TermStatus.Label'] = 'Term Status';juno.label['date.format.style2'] = 'd MMM  yyyy';juno.label['postType.contractual'] = 'Contractual';juno.label['applicant.welcomePage.btnSlotBooking'] = 'Selection Process Slot Booking';juno.label['l.isInvoceToFeesLabel'] = 'Invoice';juno.label['signup.email.message.Latest'] = 'Dear User,<br><br>Greetings from {0} .<br><br>You have successfully registered to access the {1} Enterprise Resource Planning (ERP) suite. Please find below your credentials to use the ERP:<br> Login URL - {2} <br> Username -{3} <br>Password -{4} <br>Please change your password upon logging in for the first time. Kindly note that the Username, once created, cannot be changed. Also, requests for change of e- mail ID may lead to blocking of your account.<br>{5}<br>{6}<br>In case you would have any queries, feel free to contact the Technical Team at {7} <br><\/br>Best Regards,<br>{8} ERP Team.';juno.label['l.SectionDiv'] = 'Section';juno.label['RCOEM.AdmissionUIDConfig'] = 'true';juno.label['user.address.address'] = 'Address';juno.label['user.password'] = 'Password';juno.label['coordinationschema.subject'] = 'subject';juno.label['l.ComedkCetNo'] = 'COMEDK\/CET\/TAT\/PG CET No';juno.label['applicant.welcomePage.finalMeritShow'] = '0';juno.label['login.passwordHint'] = 'Forgot password?  Have your <a href=\"?\" onmouseover=\"window.status=\'Have your password sent to you.\'; return true\" onmouseout=\"window.status=\'\'; return true\" title=\"Have your password sent to you.\" onclick=\"passwordHint(); return false;\" id=\"passwordHint\">password e-mailed to you<\/a>.';juno.label['l.Customerwise.PrereadPreclassActivity.Label'] = 'Pre-read\/ Pre-class Activity';juno.label['icon.information'] = 'Information';juno.label['copyright.year'] = '${copyright.year}';juno.label['customerHelper.HYGIA.employee.profile'] = 'ABS';juno.label['label.password'] = 'Password';juno.label['button.edit'] = 'Edit';juno.label['menu.user'] = 'Edit Profile';juno.label['App.BML_SERVER.isRoundCurrencyValue'] = 'true';juno.label['postType.adhocTeaching'] = 'Adhoc Teaching';juno.label['button.add'] = 'Add';juno.label['organizationlevel.institutecourse'] = '4';juno.label['CMR.IT.l.Customerwise.APO.Label'] = 'Director\/Dean';juno.label['activeUsers.heading'] = 'Current Users';juno.label['icon.email.img'] = '\/images\/iconEmail.gif';juno.label['applicant.welcomePage.lblDiscrepancyfound'] = '(Education history and upload documents editable.)';juno.label['l.SchoolInstitute'] = 'Institute';juno.label['postType.outsourcedContractual'] = 'Outsourced Contractual';juno.label['l.ar.firstName'] = '\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0627\u0648\u0644';juno.label['CMR.IT.l.SponsorshipReceivable'] = 'Scholarship Applied';juno.label['l.Customerwise.TermName.Label'] = 'Term Name';juno.label['coordinationschema.academicbatch'] = 'academicBatch';juno.label['UnivirsityExamForm.RCOEM.btn_show'] = 'true';juno.label['signup.sms.message'] = 'You have successfully registered for access.';juno.label['applicant.RegistrationPage.regPageGuidelines'] = '<p>1. Applicant must read all the guidelines carefully before filling the form.<\/p>';juno.label['l.streamAbbreviation'] = 'Stream Abbreviation';juno.label['applicant.welcomePage.lblLastName'] = 'Last Name';
+juno.customerHelper = 'CMR_IT';
+juno.customerHelperKey = 'CMR.IT';
+juno.currentRoleName = 'Student';
+juno.headerlinktype = 'student';
+juno.login_userFullName = 'Amogh Sai Ykuntam  ';
+juno.login_emailId = 'amogh.cseaiml24@cmrit.ac.in';
+juno.employee_master_id = '';
+juno.downloadDocumentV2 = (key, bucketName, fileName)=>{
+	
+
+fetch('/api/v1/dms/' + bucketName + '/objects/' + key, {
+		    headers: {
+		        "x-api-key": 'juno-api-key',
+		    }
+		})
+		.then(response => {
+		    if (!response.ok) {
+		        throw new Error("Failed to fetch the file");
+		    }
+		    return response.blob(); 
+		})
+		.then(blob => {
+		    const link = document.createElement('a');
+		    link.href = URL.createObjectURL(blob);
+		    link.download = fileName; 
+		    document.body.appendChild(link);
+		    link.click(); 
+		    document.body.removeChild(link); 
+		})
+		.catch(error => {
+		    console.error('Error downloading the file:', error);
+		});
+}
+juno.uploadDocumentToDMSModuleV2 = (file, note, category, stringifiedRequestBody, resource, resourceId)=>{
+	const formData = new FormData();
+    formData.append("file", file);
+    formData.append("note", note);
+    formData.append("category", category);
+    formData.append("requestBody", stringifiedRequestBody);
+    formData.append("resource", resource);
+    formData.append("resourceId", resourceId);
+	return fetch('/api/v1/dms/02652e0c-9288-9b54-b774-ecb1d784b5f8/object/module?publicAccessURL=false', {   
+				method: "POST", 
+				body: formData,
+			    headers: {
+			    	/* "Content-Type":"application/octet-stream", */
+			    	"userId":'38689',
+			        "x-api-key": 'juno-api-key',
+			    }
+			})
+			.then(response => {
+		        if (!response.ok) {
+		            return `Upload failed, response code `;
+		        }
+			    return response.json(); 
+			})
+			.catch(error => {
+			  	console.error("Upload error:", error);
+		     	return "Upload failed due to an error";
+			});
+}
+juno.getDMSModuleDocumentsV2 = (category, stringifiedRequestBody) => {
+    const headers = {
+    	"userId":'38689',
+        "x-api-key": 'juno-api-key',
+        "Content-Type": "application/json; charset=utf-8"
+    };
+
+    const options = {
+        method: "POST",
+        headers: headers,
+        body: stringifiedRequestBody
+    };
+    
+    return fetch('/api/v1/dms/common/module?category='+category, options)
+        .then(response => {
+            if (!response.ok) {
+                return Promise.reject(`Failed to receive document list, response code `);
+            }
+            return response.json();
+        })
+        .then(responseBody => {
+            return responseBody; 
+        })
+        .catch(error => {
+            console.error("Error making the request:", error);
+            throw error;
+        });
+}
+
+juno.getDMSModuleDocumentsByResourceV2 = (resource, resourceId) => {
+    const headers = {
+    	"userId":'38689',
+        "x-api-key": 'juno-api-key',
+        "Content-Type": "application/json; charset=utf-8"
+    };
+
+    const options = {
+        headers: headers,
+    };
+    
+    return fetch('/api/v1/dms/common/resource?resource='+resource+'&resourceId='+resourceId, options)
+        .then(response => {
+            if (!response.ok) {
+                return Promise.reject(`Failed to receive document list, response code `);
+            }
+            return response.json();
+        })
+        .then(responseBody => {
+            return responseBody; 
+        })
+        .catch(error => {
+            console.error("Error making the request:", error);
+            throw error;
+        });
+}
+
+
+
+</script>
+<!-- Document Preview -->
+<div id="showDocumentPreviewDialog" class="modal fade hide">
+	<div class="modal-body" style="max-height:900px;">
+		<button type="button" class="close badge" data-dismiss="modal">X Close This Preview</button>
+		<div class="documentBody"></div>
+	</div>
+</div>
+<!-- ------------ -->
+<div id="gemsCommonAuthenticationModal" class="modal hide fade">
+    <div class="modal-header"><button type="button" class="close" data-dismiss="modal">x</button><h3>Authentication Required</h3>
+        <a class="btn btn-default btn-mini pull-right gems_authentication_logs_btn" href="javascript:void(0);" style="margin-top: -12px;display:none;">View Logs</a>
+    </div>
+    <div class="modal-body">
+        <div class="gemsCommonAuthenticationSentOtpBody">
+            <a class="btn btn-info btn-mini gemsCommonAuthenticationSentOtpBtn" href="javascript:void(0);">Send Verification Code</a>
+             <img src="img/ajax-loader-moving.gif" class="gemsCommonAuthenticationloader" style="display: none;">
+            <div class="gemsCommonAuthenticationSentOtpInfo"></div>
+        </div>
+        <div class="gemsCommonAuthenticationShowLogsBody" style="display:none;"></div>
+        <div class="alert alert-danger alert-dismissible fade in gemsCommonAuthenticationError" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+        <input type="button" class="btn btn-inverse btn-mini notranslate" onclick="$('#gemsCommonAuthenticationModal').modal('hide')" value="Close">
+    </div>
+</div>
+
+<!-- ------------ -->
+<!-- 
+<style type="text/css">
+	.draggable-area {
+		position:fixed;
+		right:0;
+		bottom:0;
+		top:0;
+		left:0;
+		padding: 2px;
+		visibility: hidden;
+	}   	
+   	
+	.helpPanel {
+		position:fixed;
+		width:300px;
+		height: 80%;
+		right:3px;
+		top:85px;
+		padding-bottom: 18px;
+		background-color: white;
+		border:solid 1px #085F8F;
+		border-radius: 2px;
+		box-shadow: 0 0 3px #BBB; -moz-box-shadow: 0 0 3px #BBB; -webkit-box-shadow: 0 0 3px #BBB;
+		opacity: 0.4;
+    	filter: alpha(opacity=40);
+    	z-index:99999;
+   	}
+	.helpPanel:hover {
+		opacity: 1;
+    	filter: alpha(opacity=100);
+	}
+	.helpPanelTitle {
+		width:100%;
+		background-color: #085F8F;
+		color:white;
+		text-align:center;
+		height: 18px;
+		cursor:move;
+	}
+	
+	.helpButton {
+		background-image: url("img/help.png");
+	    background-size: contain;
+	    background-repeat: no-repeat;
+	    position:fixed;
+		height:50px;
+		width:50px;
+		right:50px;
+		bottom:50px;
+		z-index:99999;
+		opacity: 0.4;
+    	filter: alpha(opacity=40);
+    	cursor:pointer;
+	}
+	.helpButton:hover {
+		opacity: 1;
+    	filter: alpha(opacity=100);
+	}
+	
+	#helpPanelClose, #helpPanelOpen {
+		cursor:pointer;
+	}
+	
+	.helpPanelContent {
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+	}
+	
+	#helpPanelContent li {
+	    margin-left: 15px;
+	    list-style-type: circle;
+	 }
+	
+</style>
+
+<div class="draggable-area"></div>
+
+<div id="helpButton" class="helpButton"></div>
+
+<div id="helpPanel" class="helpPanel hide">
+	<div id="helpPanelTitle" class="helpPanelTitle">
+		<span style="margin-left: 50px;">Help</span>
+		<span id="helpPanelOpen" class="pull-right" title="Maximize"><i class="icon-resize-full icon-white"></i>&nbsp;</span>
+		<span id="helpPanelClose" class="pull-right" title="Minimize"><i class="icon-minus icon-white"></i>&nbsp;&nbsp;</span>
+	</div>
+	<div id="helpPanelContent" class="helpPanelContent">
+		
+				<div style="width:100%; margin-left:-10px; margin-top:100px; text-align: center;">
+	<img src="img/workInProgress.jpg" style="width:400px;" />
+</div>
+			
+	</div>
+</div>
+
+<script>
+	$(function() {
+		$("#helpPanel").resizable().removeClass().addClass("helpPanel hide");
+		
+		$("#helpPanel").draggable({
+			handle: "#helpPanelTitle",
+			containment: ".draggable-area", scroll: false
+		}).removeClass().addClass("helpPanel hide");
+		
+		$("#helpButton").draggable({
+			containment: ".draggable-area", scroll: false
+		});
+		
+		$("#helpButton").on("click", function(){
+			$("#helpPanel").show();
+			$("#helpButton").hide();
+		});
+		
+		$("#helpPanelClose").on("click", function(){
+			$("#helpPanel").hide();
+			$("#helpButton").show();
+		});
+		
+		$("#helpPanelOpen").on("click", function(){
+			$("#helpPanel").hide();
+			$("#helpButton").show();
+			
+			window.open("helpPanelFull.jsp?help=studentHome");
+		});
+	});
+</script> -->
+
+<!-- -----mobile app auto login------- -->
+<div id="MobileAppAutoLoginModel" class="modal fade hide" style="text-align:center;">
+<div class="modal-body">
+	<table class="table table-bordered table-condensed" style="text-align:center">
+		<tbody><tr>
+			<td rowspan="2" style="text-align:center;vertical-align:middle"><div id="MobileAppAutoLoginUsrnameUrl" style="text-align:center"></div><div id="MobileAppAutoLoginQRImg" style="text-align:center"></div> <b style="color:red;">Don't share the QR Code with anyone </b></td>
+		</tr>
+		<tr>
+			<td rowspan="2" style="text-align:center;vertical-align:middle;">
+			
+			<a href="https://play.google.com/store/apps/details?id=com.gems" target="_blank"><img src="img/social/androidplaystore.png" width="150px" height="80px"></a> 
+			<a href="https://itunes.apple.com/in/app/gems-student/id1431652107?mt=8" target="_blank"><img src="img/social/iosplaystore.png" width="150px" height="80px"></a>
+			
+			</td>
+		</tr>
+	</tbody></table>
+</div>
+<div class="modal-footer">
+	<input type="button" class="btn btn-info notranslate" value="Close" data-dismiss="modal">
+</div>
+</div>
+<div id="gemsCommonDialogModal" class="modal hide fade">
+    <div class="modal-header"><i class="pull-right fa fa-times fa-lg" style="color:red;cursor:pointer" data-dismiss="modal"></i><h1 class="juno-modal-header"></h1></div>
+    <div class="modal-body"></div>
+    <div class="modal-footer"><span class="juno-modal-footer" style="margin-right:5px"></span><span class="btn btn-danger btn-mini j-fa fa-times" data-dismiss="modal">Close</span></div>
+</div>
+
+
+
+<input type="hidden" id="hiddenDemoDMS" value="false" class="notranslate">
+
+<input type="hidden" id="employeeCourseType" value="-" class="notranslate">
+<input type="hidden" id="pipa" value="-" class="notranslate">
+<input id="userName" type="hidden" value="amogh.cseaiml24@cmrit.ac.in" class="notranslate">
+<div id="QrgenerationModal" data-backdrop="static" class="modal hide" style="min-width:500px;">
+	<div class="modal-header"><strong>Scan QR For Login</strong></div>
+	<div class="modal-body" id="QrgenerationBody" align="center" style="min-height:330px;min-width:450px;"></div>
+	<div class="modal-footer" id="QrgenerationFooter" style="text-align: center;"></div>
+	</div>
+<input id="hdnUserRole" type="hidden" value="student" class="notranslate">
+<script type="text/javascript">
+// var updateIntervalId;
+
+function generateLoginQr(){
+	const userId = '38689';
+	let second = 30;
+	let timer;
+	const payload = window.location.origin+'~~~'+$('#userName').val()+'~~~'+userId;
+	let body=''
+
+	if($('#hdnUserRole').val().toLowerCase().includes("student")){
+		identifier = "student-login-general"
+	}else{
+		identifier='employee-login-general'
+	}
+	$.ajax({
+		url:'generateGeneralQr.json',
+		data:{
+			expiration:"30",
+			payload:payload,
+			identifier:identifier
+		},
+		dataType:'text',
+		type:'POST',
+		beforeSend:function() {
+		},
+		complete: function() {
+		},
+		success:function(str){
+			/* <img style="flex:0 1 auto" align="middle" src="https://chart.googleapis.com/chart?chs=500x400&cht=qr&chl=`; */
+		body+=`
+		<img style="flex:0 1 auto" align="middle" src="https://api.qrserver.com/v1/create-qr-code/?size=500x400&data=`;
+		body+= str;
+		body += `&choe=UTF-8">`;
+		let footer='<div style="float:left">Refreshing in: <i id="timer"></<i></div><a type="button" style="float:right" onclick="changeQrLoginFlag(false);clearInterval('+timer+');" data-dismiss="modal" aria-hidden="true" class="btn btn-mini btn-danger">Close</a>';
+		$('#QrgenerationBody').html(body);
+		$('#QrgenerationFooter').html(footer);
+		$('#QrgenerationModal').modal('show');
+		}
+	});
+//	updateIntervalId = setInterval(generateLoginQr, 30000);
+	timer = setInterval(function() {
+		second=second-1;
+		document.getElementById("timer").innerHTML = second + "s ";
+	       if(second<=0){
+	    	   second=30;
+	    	   generateLoginQr();
+	    	   clearInterval(timer);
+	       }
+	}, 1000);
+}
+
+function changeQrLoginFlag(isQrLoginEnabled){
+
+	$.ajax({
+		url:'/changeQrLoginFlag.json?isQrLoginEnabled='+isQrLoginEnabled,
+		/*data:{
+			isQrLoginEnabled:isQrLoginEnabled
+			},*/
+		dataType:'json',
+		type:'POST',
+		beforeSend:function() {
+		},
+		complete: function() {
+		},
+		success:function(str){
+		}
+	});
+}
+</script>
+<!-- LOKESH_REPLACE -->
+
+<div class="modal hide" id="loading" style="width: 200px;">
+	<div class="modal-header">
+		<h3>Please Wait....</h3>
+	</div>
+	<div class="modal-body" align="center"><p>
+			<img src="css/images/loading29.gif"></p>
+	</div>
+	<div class="modal-footer"></div>
+</div>
+
+ 
+
+<div class="modal hide fade" id="placementAcceptRegistration">
+	<div class="modal-header"><a class="close" data-dismiss="modal">×</a>
+		<h5>Register Yourself</h5>
+	</div>
+	
+	<div class="modal-body" id="placementAcceptRegistrationBody"></div>
+	<div class="modal-footer">
+	</div>
+</div>
+
+<div class="modal hide fade" id="placementRejectRegistration">
+	<div class="modal-header">
+		<a class="close" data-dismiss="modal">×</a>
+	</div>
+	<div class="modal-body" id="placementRejectRegistrationBody"></div>
+	<div class="modal-footer">
+		<a href="#" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationRejReq()">Save</a>
+		<a href="#" class="btn btn-inverse btn-mini  " data-dismiss="modal">Close</a>
+	</div>
+</div>
+
+<div class="modal hide fade" id="addOtherCompanyPopUp" title="Add Company" style="width: 800px;">
+	<div class="modal-header">
+		<button type="button" id="dismissAddOtherUniversityFrm" class="close" data-dismiss="modal">x</button>
+		<h3>Add Company</h3>
+		<hr style="border-color: black; width: 90%">
+	</div>
+	<div class="modal-body">
+		<table class="smalltable">
+			<tbody><tr><td><label>Company Name:</label></td>
+				<td><input id="txtOtherCompanyName" type="text" class="notranslate"></td>
+			</tr>
+			<tr><td colspan="2" align="center">
+					<div align="center">
+						<input type="button" class="btn btn-inverse btn-mini   notranslate" value="Save" onclick="saveAnotherCompInPopUpThroughStud()">
+						<input type="reset" class="btn btn-inverse btn-mini   notranslate" value="Reset">
+						<input type="button" class="btn btn-inverse btn-mini   notranslate" data-dismiss="modal" value="Cancel">
+					</div>
+				</td></tr>
+		</tbody></table>
+	</div>
+</div>
+
+<div class="modal hide fade" id="addOtherQualificationForPlacementDiv">
+	<div class="modal-header"><a class="close" data-dismiss="modal">×</a>
+		<h5>Add Other Qualification</h5>
+	</div>
+	<div class="modal-body" id="addOtherQualificationForPlacementBody"></div>
+	<div class="modal-footer">
+	</div>
+</div>
+
+
+	<!-- container -->
+	<div id="container-wrap" class="box-shad-5-DDD">
+	<div id="container-wrap-border">
+	<div id="container" class="clearfix">
+
+<input type="hidden" value="Student Unique No" id="studUniqueNo" class="notranslate">
+<input id="showCommentHide" showhide="show" type="hidden" value="student" class="notranslate">
+<input type="hidden" id="customerHelper" value="CMR_IT" class="notranslate">
+<input type="hidden" id="courseType" value="COURSE_TYPE_UG" class="notranslate">
+<input type="hidden" id="studentId" value="33076" class="notranslate">
+<input type="hidden" id="studentName" value="Amogh Sai Ykuntam  " class="notranslate">
+<input type="hidden" id="SubCourseType" value="" class="notranslate">
+<input type="hidden" id="courseNameTemp" value="BE (CSE AI&amp; ML)" class="notranslate">
+<input type="hidden" id="newFeesAcdemicUiFlag" value="" class="notranslate">
+<input type="hidden" id="studentLockStatus" value="false" class="notranslate">
+<input type="hidden" id="studentUniqueNumber" value="false" class="notranslate">	
+<input type="hidden" id="studDashboardLblStudSide" value="" class="notranslate">
+<input type="hidden" id="junoMicroserviceTransportEnable" value="false" class="notranslate">
+<input type="hidden" id="junoMicroserviceTransportMenuEnable" value="false" class="notranslate">
+<input type="hidden" id="hideStudentSideLeaveApplication" value="false" class="notranslate">
+<input type="hidden" id="isDevelopmentEnvironment" value="false" class="notranslate">
+<input type="hidden" id="tailWindNewUICourseFile" value="false" class="notranslate">
+<input type="hidden" id="studentSideNewCourseUI" value="true" class="notranslate">
+<input type="hidden" id="subjectwiseStudentIdsString" value="0" class="notranslate">
+<input type="hidden" id="subjectwiseBatchIdsString" value="0" class="notranslate">
+
+
+	<input type="hidden" id="isProductionEnvironment" value="true" class="notranslate">
+
+<input type="hidden" value="true" id="productionServer" class="notranslate">
+<input type="hidden" value="false" id="studentHomeControls" class="notranslate">
+		<input type="hidden" id="currentCustomerRoleType" value="Student" class="notranslate">
+	<input id="hdnUserRole" type="hidden" value="student" class="notranslate"><!-- Not to be deleted -->
+	<div id="homeContent">
+	<div style="float:left; width: 190px;margin-right:10px;">
+	<div id="sideBarStudentDashboard"><div class="avatar-container homeSection profileDash"><img class="pull-left" width="64px" height="150px" src="getStudentProfileImage.json" alt="Photo" id="studentProfilePhoto" name="Photo" style="background-color: rgb(255, 255, 255); max-height: 270px;"><div class="studentDesc"><span>Amogh Sai Ykuntam  </span><br></div><br><small style="color: gray;"><span id="rollNo">Roll No. :1CR24CI002<br>IV Sem<br>BE (CSE AI&amp; ML)<br>A</span></small></div><div class="avatar-container homeSection stuSideBar "><table class="table table-considered borderless"><tbody class="nav nav-list studDashli "><tr class="active"><td><i class="fa fa-dashboard fa-lg"></i></td><td><a href="home.htm"><div style="height: 100%; width: 100%;">DASHBOARD</div></a></td></tr><tr><td><i class="fa fa-user fa-lg"></i></td><td><a id="a_profile" href="stu_studentProfile.htm"><div style="height: 100%; width: 100%;">PROFILE</div></a></td></tr><tr><td><i class="fa fa-book fa-lg"></i></td><td><a id="a_syllabus" href="studentCourses.htm"><div style="height: 100%; width: 100%;"> SYLLABUS</div></a></td></tr><tr><td><i class="fa fa-calendar fa-lg"></i></td><td><a id="a_academicCalender" href="studentScheduleAcademicCalender.htm"> <div style="height: 100%; width: 100%;">CALENDAR</div></a></td></tr><tr><td><i class="fa fa-clock-o fa-lg"></i></td><td><a id="a_timeTable" href="#"><div style="height: 100%; width: 100%;">TIME TABLE</div></a></td></tr><tr><td><i class="fa fa-bar-chart fa-lg"></i></td><td><a id="a_library" href="stu_studentLibraryDetails.htm"><div style="height: 100%; width: 100%;">LIBRARY (<span id="bookIssueCount">0 <span style="font-size:11px;text-transform:none;">Issued</span></span>)</div></a></td></tr><tr><td><i class="fa fa-rupee fa-lg"></i></td><td><a id="a_fees" href="studentFinanceDetails.htm"><div style="height: 100%; width: 100%;">FEES DETAILS</div></a></td></tr><tr><td><i class="fa fa-file-text fa-lg"></i></td><td><a id="a_leave" href="studentLeaveApplication.htm"> <div style="height: 100%; width: 100%;">LEAVE DETAILS</div></a></td></tr><tr><td><i class="fa fa-building fa-lg"></i></td><td><a id="a_hostel" href="studentHostelHomeDetails.htm"><div style="height: 100%; width: 100%;">HOSTEL</div></a></td></tr><tr><td><i class="fa fa-male fa-lg"></i></td><td><a id="a_mentor" href="stu_mentorCommunicationSmsEmail.htm"><div style="height: 100%; width: 100%;">CONTACT MENTOR</div></a></td></tr><tr><td><i class="fa fa-comments-o fa-lg"></i></td><td><a id="a_blogs" href="viewCommentBlog.htm"><div style="height: 100%; width: 100%;">BLOGS</div></a></td></tr></tbody></table></div></div>
+	</div>
+	<div class="box-wrap box-pull-left" style="width: 780px;">
+		<div class="studentDashBoardBox" style="margin-bottom:22px;padding-left:0px !important;">
+		
+    		 <div class="row-fluid"> 
+					
+
+			 <div class="" id="middleBoxStudentDashboard"><div id="stud1" class="avatar-container homeSection EvtDashboard   span2  text-center" style="border-radius: 5px; cursor: pointer; text-align: center; margin-left: 0px; padding-top: 10px;"><h3 class="NewuniformFontStylesBold" id="announcementCount" style="display: inline; margin: 2px;">0</h3><h2 class="EvtDashboardTxt ann panelDash uniformFontStyles">Announcements</h2></div><div class="avatar-container homeSection EvtDashboard   span2  text-center" id="stud2" style="border-radius: 5px; cursor: pointer; text-align: center; margin-left: 10px; padding-top: 10px;"><h3 class="NewuniformFontStylesBold" id="attendencePer" style="display: inline; margin: 2px;">80.55%</h3><h2 class="EvtDashboardTxt panelDash uniformFontStyles">Attendance </h2></div><div class="avatar-container homeSection EvtDashboard   span2  text-center" id="stud3" style="border-radius: 5px; cursor: pointer; text-align: center; margin-left: 10px; padding-top: 10px;"><h3 class="NewuniformFontStylesBold" id="assignmentCount" style="display: inline; margin: 2px;">0</h3><h2 class="EvtDashboardTxt panelDash uniformFontStyles">Assessment</h2><input id="assignmentPostIds" type="hidden" value="0" class="notranslate"></div><div class="avatar-container homeSection EvtDashboard   span2  text-center" id="stud4" style="border-radius: 5px; cursor: pointer; text-align: center; margin-left: 10px; padding-top: 10px;"><h3 class="NewuniformFontStylesBold" id="taskCount" style="display: inline; margin: 2px;">9</h3><h2 class="EvtDashboardTxt panelDash uniformFontStyles">Task</h2></div><div class="avatar-container homeSection EvtDashboard   span2  text-center" id="stud5" style="border-radius: 5px; cursor: pointer; text-align: center; margin-left: 10px; padding-top: 10px;"><h3 class="NewuniformFontStylesBold" id="companyCount" style="display: inline; margin: 2px;">0</h3><h2 class="EvtDashboardTxt panelDash uniformFontStyles">Placement</h2></div></div></div></div>
+    
+   	<input type="hidden" id="customerHelper" value="CMR_IT" class="notranslate">
+    <!-- Parent Div started -->
+      <div class="parentDiv">
+      
+      
+      <div id="containerTimeTable" style="overflow:auto;margin-bottom:3px;">
+		<div id="viewTimetable"><fieldset class="custom-fieldset" style="boarder:1px solid #bfbdbd !important"><legend style="font-size:11px"><i class="fa fa-clock-o"></i> TODAY'S  SCHEDULE</legend><div><div style="text-align:center;background-color:#BDC3C7;"></div><table id="schedule1" class="table table-condensed alert-info"><tbody><tr></tr><tr><td style="text-align:center;font-size:11px;"><div> <i>01:00 PM-02:00 PM</i></div></td><td style="text-align:center;font-size:11px;"><div> <i>09:00 AM-10:00 AM</i></div></td><td style="text-align:center;font-size:11px;"><div> <i>08:00 AM-09:00 AM</i></div></td><td style="text-align:center;font-size:11px;"><div> <i>10:20 AM-12:20 PM</i></div></td></tr><tr><td style="text-align:center;font-size:11px;">BIO</td><td style="text-align:center;font-size:11px;">DBMS</td><td style="text-align:center;font-size:11px;">DMS</td><td style="text-align:center;font-size:11px;">DBMS lab</td></tr><tr><td style="text-align:center;font-size:11px;"></td><td style="text-align:center;font-size:11px;"></td><td style="text-align:center;font-size:11px;"></td><td style="text-align:center;font-size:11px;"></td></tr></tbody></table></div></fieldset></div></div>
+		<div id="BulletinBoard"><legend class="buletinCls" style="width: 97%;"><div><span id="currentSelection" style="font-size: 11px;"><i class="fa fa-inbox fa-lg"></i>&nbsp;&nbsp;BULLETIN BOARD</span><span class="pull-right" style="font-size: 11px; text-transform: none;"><a bulletintype="Posts"><i class="fa fa-bullhorn fa-lg"></i>&nbsp;View All Posts&nbsp;</a><span> | </span><a id="bulletinStatus" class="compose"><i class="fa fa-envelope fa-lg"></i>&nbsp;Compose&nbsp;</a><a id="bulletinStatus" class="compose" style="display: none;"><i class="fa fa-times-circle fa-lg"></i></a></span></div></legend><br></div>
+		<div id="postHome">
+				<ul class="timeline" data-spy="affix" data-offset-top="10" style="display:none;">
+		              <li>
+		                 <div class="timeline-panel">
+				            <form class="facebook-share-box">
+				            	<div class="timeline-body">
+				                	<div class="share-form">
+					                  <ul class="post-types">
+					                    <li class="post-type">
+					                      <a class="status" id="shareType" href="#"><i class="icon icon-envelope"></i> Message</a>
+					                    </li>
+					                    <li class="post-type">
+					                      <a class="photos" id="shareType" href="#"><i class="icon icon-file"></i> Documents </a>
+					                    </li>
+					                    <li class="post-type">
+					                      <a class="videos" id="shareType" href="#"><i class="icon icon-film"></i> Link </a>
+					                    </li>
+					                    <!-- <li class="post-type">
+					                      <a class="location" id="shareType" href="#"><i class="icon icon-map-marker"></i> Place </a>
+					                    </li> -->
+					                     <li class="post-type">
+						                      <a class="email" id="shareType" href="javascript:void(0)"><i class="fa fa-envelope-o fa-lg"></i> Email </a>
+						                    </li>
+					                    
+					                  </ul>
+					                  <div class="share">
+					                    <div class="arrow"></div>
+					                    <div><textarea name="message" cols="40" rows="10" id="alumniTextPost" class="form-control message" style="width: 98.6%; height: 62px; overflow: hidden; visibility: hidden; display: none;" placeholder="What's on your mind ?"></textarea><span id="cke_alumniTextPost" class="cke_skin_kama cke_1 cke_editor_alumniTextPost" dir="ltr" title="" lang="en" tabindex="0" role="application" aria-labelledby="cke_alumniTextPost_arialbl"><span id="cke_alumniTextPost_arialbl" class="cke_voice_label">Rich Text Editor</span><span class="cke_browser_webkit" role="presentation"><span class="cke_wrapper cke_ltr" role="presentation"><table class="cke_editor" border="0" cellspacing="0" cellpadding="0" role="presentation"><tbody><tr role="presentation"><td id="cke_top_alumniTextPost" class="cke_top" role="presentation"><div class="cke_toolbox" role="group" aria-labelledby="cke_6" onmousedown="return false;"><span id="cke_6" class="cke_voice_label">Editor toolbars</span><span id="cke_8" class="cke_toolbar" aria-labelledby="cke_8_label" role="toolbar"><span id="cke_8_label" class="cke_voice_label">Styles</span><span class="cke_toolbar_start"></span><span class="cke_rcombo" role="presentation"><span id="cke_7" class="cke_font cke_off" role="presentation"><span id="cke_7_label" class="cke_label">Font</span><a hidefocus="true" title="Font Name" tabindex="-1" href="javascript:void('Font')" role="button" aria-labelledby="cke_7_label" aria-describedby="cke_7_text" aria-haspopup="true" onkeydown="CKEDITOR.tools.callFunction( 5, event, this );" onfocus="return CKEDITOR.tools.callFunction(6, event);" onclick="CKEDITOR.tools.callFunction(4, this); return false;"><span><span id="cke_7_text" class="cke_text cke_inline_label">Font</span></span><span class="cke_openbutton"><span class="cke_icon"></span></span></a></span></span><span class="cke_rcombo" role="presentation"><span id="cke_9" class="cke_fontSize cke_off" role="presentation"><span id="cke_9_label" class="cke_label">Size</span><a hidefocus="true" title="Font Size" tabindex="-1" href="javascript:void('Size')" role="button" aria-labelledby="cke_9_label" aria-describedby="cke_9_text" aria-haspopup="true" onkeydown="CKEDITOR.tools.callFunction( 8, event, this );" onfocus="return CKEDITOR.tools.callFunction(9, event);" onclick="CKEDITOR.tools.callFunction(7, this); return false;"><span><span id="cke_9_text" class="cke_text cke_inline_label">Size</span></span><span class="cke_openbutton"><span class="cke_icon"></span></span></a></span></span><span class="cke_toolgroup" role="presentation"><span class="cke_separator" role="separator"></span></span><span class="cke_toolbar_end"></span></span><span id="cke_10" class="cke_toolbar" aria-labelledby="cke_10_label" role="toolbar"><span id="cke_10_label" class="cke_voice_label">Basic Styles</span><span class="cke_toolbar_start"></span><span class="cke_toolgroup" role="presentation"><span class="cke_button"><a id="cke_11" class="cke_off cke_button_bold" "="" href="javascript:void('Bold')" title="Bold" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_11_label" onkeydown="return CKEDITOR.tools.callFunction(10, event);" onfocus="return CKEDITOR.tools.callFunction(11, event);" onclick="CKEDITOR.tools.callFunction(12, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_11_label" class="cke_label">Bold</span></a></span><span class="cke_button"><a id="cke_12" class="cke_off cke_button_italic" "="" href="javascript:void('Italic')" title="Italic" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_12_label" onkeydown="return CKEDITOR.tools.callFunction(13, event);" onfocus="return CKEDITOR.tools.callFunction(14, event);" onclick="CKEDITOR.tools.callFunction(15, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_12_label" class="cke_label">Italic</span></a></span><span class="cke_button"><a id="cke_13" class="cke_off cke_button_underline" "="" href="javascript:void('Underline')" title="Underline" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_13_label" onkeydown="return CKEDITOR.tools.callFunction(16, event);" onfocus="return CKEDITOR.tools.callFunction(17, event);" onclick="CKEDITOR.tools.callFunction(18, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_13_label" class="cke_label">Underline</span></a></span><span class="cke_separator" role="separator"></span></span><span class="cke_toolbar_end"></span></span><span id="cke_14" class="cke_toolbar" aria-labelledby="cke_14_label" role="toolbar"><span id="cke_14_label" class="cke_voice_label">Paragraph</span><span class="cke_toolbar_start"></span><span class="cke_toolgroup" role="presentation"><span class="cke_button"><a id="cke_15" class="cke_off cke_button_numberedlist" "="" href="javascript:void('Insert/Remove Numbered List')" title="Insert/Remove Numbered List" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_15_label" onkeydown="return CKEDITOR.tools.callFunction(19, event);" onfocus="return CKEDITOR.tools.callFunction(20, event);" onclick="CKEDITOR.tools.callFunction(21, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_15_label" class="cke_label">Insert/Remove Numbered List</span></a></span><span class="cke_button"><a id="cke_16" class="cke_off cke_button_bulletedlist" "="" href="javascript:void('Insert/Remove Bulleted List')" title="Insert/Remove Bulleted List" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_16_label" onkeydown="return CKEDITOR.tools.callFunction(22, event);" onfocus="return CKEDITOR.tools.callFunction(23, event);" onclick="CKEDITOR.tools.callFunction(24, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_16_label" class="cke_label">Insert/Remove Bulleted List</span></a></span><span class="cke_separator" role="separator"></span><span class="cke_button"><a id="cke_17" class="cke_off cke_button_justifyleft" "="" href="javascript:void('Align Left')" title="Align Left" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_17_label" onkeydown="return CKEDITOR.tools.callFunction(25, event);" onfocus="return CKEDITOR.tools.callFunction(26, event);" onclick="CKEDITOR.tools.callFunction(27, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_17_label" class="cke_label">Align Left</span></a></span><span class="cke_button"><a id="cke_18" class="cke_off cke_button_justifycenter" "="" href="javascript:void('Center')" title="Center" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_18_label" onkeydown="return CKEDITOR.tools.callFunction(28, event);" onfocus="return CKEDITOR.tools.callFunction(29, event);" onclick="CKEDITOR.tools.callFunction(30, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_18_label" class="cke_label">Center</span></a></span><span class="cke_button"><a id="cke_19" class="cke_off cke_button_justifyright" "="" href="javascript:void('Align Right')" title="Align Right" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_19_label" onkeydown="return CKEDITOR.tools.callFunction(31, event);" onfocus="return CKEDITOR.tools.callFunction(32, event);" onclick="CKEDITOR.tools.callFunction(33, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_19_label" class="cke_label">Align Right</span></a></span><span class="cke_button"><a id="cke_20" class="cke_off cke_button_justifyblock" "="" href="javascript:void('Justify')" title="Justify" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_20_label" onkeydown="return CKEDITOR.tools.callFunction(34, event);" onfocus="return CKEDITOR.tools.callFunction(35, event);" onclick="CKEDITOR.tools.callFunction(36, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_20_label" class="cke_label">Justify</span></a></span></span><span class="cke_toolbar_end"></span></span><span id="cke_21" class="cke_toolbar" aria-labelledby="cke_21_label" role="toolbar"><span id="cke_21_label" class="cke_voice_label">Editing</span><span class="cke_toolbar_start"></span><span class="cke_toolgroup" role="presentation"><span class="cke_button"><a id="cke_22" class="cke_off cke_button_scayt" "="" href="javascript:void('Spell Check As You Type')" title="Spell Check As You Type" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_22_label" aria-haspopup="true" onkeydown="return CKEDITOR.tools.callFunction(37, event);" onfocus="return CKEDITOR.tools.callFunction(38, event);" onclick="CKEDITOR.tools.callFunction(39, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_22_label" class="cke_label">Spell Check As You Type</span><span class="cke_buttonarrow">&nbsp;</span></a></span><span class="cke_separator" role="separator"></span></span><span class="cke_toolbar_end"></span></span><span id="cke_23" class="cke_toolbar" aria-labelledby="cke_23_label" role="toolbar"><span id="cke_23_label" class="cke_voice_label">Tools</span><span class="cke_toolbar_start"></span><span class="cke_toolgroup" role="presentation"><span class="cke_button"><a id="cke_24" class="cke_off cke_button_maximize" "="" href="javascript:void('Maximize')" title="Maximize" tabindex="-1" hidefocus="true" role="button" aria-labelledby="cke_24_label" onkeydown="return CKEDITOR.tools.callFunction(40, event);" onfocus="return CKEDITOR.tools.callFunction(41, event);" onclick="CKEDITOR.tools.callFunction(42, this); return false;"><span class="cke_icon">&nbsp;</span><span id="cke_24_label" class="cke_label">Maximize</span></a></span></span><span class="cke_toolbar_end"></span></span></div><a title="Collapse Toolbar" id="cke_25" tabindex="-1" class="cke_toolbox_collapser" onclick="CKEDITOR.tools.callFunction(43)"><span>▲</span></a></td></tr><tr role="presentation"><td id="cke_contents_alumniTextPost" class="cke_contents" style="height:20%" role="presentation"><iframe style="width:100%;height:100%" frameborder="0" title="Rich text editor, alumniTextPost, press ALT 0 for help." src="" tabindex="-1" allowtransparency="true"></iframe></td></tr><tr role="presentation"><td id="cke_bottom_alumniTextPost" class="cke_bottom" role="presentation"><div class="cke_resizer cke_resizer_ltr" title="Drag to resize" onmousedown="CKEDITOR.tools.callFunction(3, event)"></div><span id="cke_path_alumniTextPost_label" class="cke_voice_label">Elements path</span><div id="cke_path_alumniTextPost" class="cke_path" role="group" aria-labelledby="cke_path_alumniTextPost_label"><span class="cke_empty">&nbsp;</span></div></td></tr></tbody></table><style>.cke_skin_kama{visibility:hidden;}</style></span></span></span> </div>
+					                    <div class="image hide">
+					                    <div id="alumniDocumentPost">
+											<div id="showAluminiPostUploadDiv"></div>
+											<div id="divAluminiUploadButton">
+											<div class="span6"> 
+												<div class="span1">
+												<div class="preview"></div></div>
+												<div class="span3">
+													<div class="btn btn-info" style="width:165px;height:20px">Upload file
+														<input style="margin-top:-40px;margin-left:-10px;opacity:0;" type="file" name="fileData" id="aluminiUploadButton" class="notranslate"></div>
+												</div>
+												<span class="btn btn-info" onclick="initShowAddDocumentToAluminiPostFromDMSDialog()" title="Attach using your drive">
+												<i class="icon-inbox"></i>
+												</span>	
+											</div>
+											</div>							
+										</div>
+					                    </div>
+					                    <div class="video hide">
+					                      <input type="text" class="form-control notranslate" style="width: 98.6%;" placeholder="Youtube or Vimeo video URL" id="alumniLinkPost" name="alumniLinkPost">
+					                      <div class="row-fluid">
+								        	<div class="liveurl">
+								            	<div class="close" title="Close"></div>
+							            		<div class="inner">
+							                		<div style="height: 100px;width: 125px;" class="image span2"></div>
+						                			<div class="details span8">
+						                    			<div class="infoX">
+						                	        		<div class="title"> </div>
+						                    	    		<div class="description"> </div> 
+						                        			<div class="url"> </div>
+					          			          		</div>
+						                    			<div class="video"></div>
+					                				</div>
+						            			</div>
+						        			</div>
+										</div>
+					                    </div>
+					                    <input type="hidden" name="shareType" class="shareType notranslate" value="status">
+					                  </div>
+										<div>
+											<ul class="token-input-list-facebook"><li class="token-input-input-token-facebook"><input type="text" autocomplete="off" id="token-input-postScope" placeholder="To" style="outline: none;"><tester style="position: absolute; top: -9999px; left: -9999px; width: auto; font-size: 13px; font-family: Tahoma, Arial, &quot;Trebuchet MS&quot;, Verdana, sans-serif; font-weight: 400; letter-spacing: normal; white-space: nowrap;"></tester></li></ul><input id="postScope" style="float: left; width: 98.6%; margin-left: 5px; display: none;" placeholder="To..." type="text" class="notranslate">
+										</div>
+				                  	</div>
+				            </div>
+				            
+				            <div class="timeline-footer clearfix" style="box-shadow: 0 10px 6px rgba(0, 0, 0, 0.175);">
+				            	<div class="pull-right">
+				                	<input type="button" style="border-radius:0px; " value="Post" id="post-alum" class="btn btn-primary notranslate">
+				                </div>
+							</div>
+				            </form>
+	          			</div>
+		              </li>
+		            </ul>
+			</div>
+			<div id="divTabsDivs"></div>
+			<div id="tabResult"></div>
+			<div id="divalumpost" style="display: block;"></div>
+			<div id="resultDiv"></div>
+			<div id="newChattingWindow">
+			</div>
+		</div>
+		
+	<!-- </div>
+	</div> -->
+	
+	
+	<div id="homeSchedulerContent" style="display:none;overflow: scroll;">
+		<div><input type="button" class="btn btn-inverse btn-mini notranslate" onclick="getBackToHome()" value="Back">
+		<input type="button" class="btn btn-inverse btn-mini notranslate" onclick="PrintPdfOfCalendar()" value="Export To PDF"></div><br>
+		<table class="schedule" id="scheduler"></table>
+		<div align="center"><input type="button" class="btn btn-inverse btn-mini notranslate" onclick="getBackToHome()" value="Back"></div>
+		
+	</div>
+	
+	<div id="homeTimeTableContent" style="display:none;overflow: scroll;">
+		<div><input type="button" class="btn btn-inverse btn-mini notranslate" onclick="getBackToHome()" value="Back"></div><br>
+		<div id="timetable"></div>
+		<div id="viewSectionTable"></div>
+	</div>
+	
+	
+	<div id="myModal" class="modal hide" style="width:800px;">
+	<div class="modal-header"><strong>End User License Agreement</strong>
+	<button type="button" class="close" data-dismiss="modal">×</button></div>
+	<div class="modal-body" id="modalAttendanceBodyDiv" align="center" style="height:300px;width:780px;">
+	<div id="modalContent" style="padding-right:20px;padding-left:5px;">
+    </div>
+	</div>
+	<div class="modal-footer"><input type="button" class="btn btn-inverse btn-mini notranslate" value="I Accept" onclick="setEulaValue();"><input class="btn btn-inverse btn-mini   notranslate" type="button" value="Close" data-dismiss="modal"></div>
+	</div>
+	
+	
+		<div id="profileImgModal" class="modal hide" style="width:500px;top: 60%;left: 50%;">
+	<div class="modal-header"><strong style="color:#db0e0e;;">Please Update Profile Picture</strong>
+	<button type="button" class="close" data-dismiss="modal">×</button></div>
+	<div class="modal-body" id="profileImgModalBodyDiv" align="center" style="height: 180px;width: 444px;">
+	</div>
+	<div class="modal-footer"><center><input class="btn btn-inverse btn-mini   notranslate" type="button" value="Close" data-dismiss="modal"></center></div>
+	</div>	
+	<div id="uploadimageModal" class="modal" role="dialog" style="display: none; ">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">×</button>
+		<h4 class="modal-title">
+			<b>Crop &amp; Upload Image</b>
+		</h4>
+	</div>
+	<div class="modal-body" style="max-height: 420px">
+		<div class="row">
+			<div class="col-md-8 text-center">
+				<div id="image_demo" style="width: auto; margin-top: 30px"></div>
+			</div>
+		</div>
+		<button class="btn btn-warning vanilla-rotate" style="margin-top: 0px; margin-left: 10px;" data-deg="-90">Rotate</button>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-success crop_image">
+			Crop &amp; Upload Image</button>
+		<button type="button" class="btn btn-secondary" style="float: right;" data-dismiss="modal">Close</button>
+	</div>
+</div>
+		<!-- profile modal -->
+	
+	</div></div>
+	</div>
+</div>
+</div>
+<!-- /container -->
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ <link rel="stylesheet" href="frameworks/animate.css4.1.1/animate.min.css">
+<!-- Footer -->
+
+	
+<div id="footer-wrapX" style="margin: 0 auto; width: 1000px; clear: both; margin-bottom: 20px;" class="clearfix">
+	<div id="footer-left" style="float: left;">
+		<p style="margin-bottom: 10px;">
+			<small> 
+				
+				
+					<br>
+					<span class="hidden">
+				
+					Built-On:2026-05-20T15:12:35Z,2026-05-20T15:12:35Z<br>
+					Built-Version:juno-campus-2.0.233184<br>
+					Repo-Version:juno-campus-2.0.233184<br>
+				
+			</span></small>
+		</p>
+		<!-- <p> 
+			<img src="img/lotusCirclular.png" style="opacity: 0.1;" /> 
+		</p> -->
+	</div>
+	
+	<div style="float: left;text-align:right;">
+		<img src="img/lotusCirclular.png" style="opacity: 0.1;"> 
+	</div>
+	
+	<div id="footer-logo" style="float: right; text-align: right; margin-left: 30px;">
+	
+				<img src="getProductLogo.json" style="height:80px">
+					
+	</div>
+	
+	<div id="footer-right" style="float: right; text-align: right;">
+		<p style="margin-bottom: 10px;">
+			<strong>
+			
+			
+			
+			
+			
+			
+		<!-- 	<a href="http://www.gems.solutions/pyk5LyngXwFAQ//#mzxkcweasdrkdfsdrxnamalsasdjerermsdlc/asdasdasdawesa/asdwdsdferaza" target="_blank">FAQ</a> &nbsp;&nbsp; -->
+						
+			<a href="mySupport.htm" target="_blank">Support</a> &nbsp;&nbsp;
+				
+			<a href="viewCommentBlog.htm" target="_blank">Blogs</a> &nbsp;&nbsp;
+			
+			
+				<a href="myCareer.htm" target="_blank">Career</a> &nbsp;&nbsp;
+			
+			
+				<a href="myForum.htm" target="_blank">Forum</a>
+			
+			
+			</strong>
+		</p>
+		<p>
+			
+				<small><a href="https://juno.org.in/why-juno-campus" target="_blank">Powered by <strong>JUNO Campus</strong></a></small>
+		
+		</p>
+		
+	</div>
+	</div>
+	
+
+
+
+
+
+<!-- Footer -->
+<script type="text/javascript">
+	$('document').ready(function(){
+		$('.ui-datepicker').addClass('notranslate');
+		$('input').addClass('notranslate');
+		$('select').addClass('notranslate');
+		$('.label').addClass('notranslate');
+		$('.socialicon').on('hover', function () { $(this).effect('bounce', { times: 1 }, 500); });		
+				
+		function loadjscssfile(filename, filetype){
+			try
+			{
+				if (filetype == "js") { 
+					var fileref = document.createElement('script');
+					fileref.setAttribute("type", "text/javascript");
+					fileref.setAttribute("src", filename);
+				} else if (filetype == "css") {
+					var fileref = document.createElement("link");
+					fileref.setAttribute("rel", "stylesheet");
+					fileref.setAttribute("type", "text/css");
+					fileref.setAttribute("href", filename);
+				}
+				if (typeof fileref != "undefined")
+					document.getElementsByTagName("head")[0].appendChild(fileref);
+			}
+			catch(err)
+			{
+				 
+			}
+		}
+		try
+		{
+			loadjscssfile("js/jquery.youtube.player.min.js", "js");
+			loadjscssfile("js/swfobject.js", "js");
+			loadjscssfile("css/youtube-player.css", "css");
+		}
+		catch(err)
+		{
+			 
+		}
+	});
+	function showHelpVideos() {
+		
+		var player;
+		var config = {
+			playlistAppendTo : '#playlist', // selector
+			// Custom playlist
+			playlist : {
+				title : 'help videos',
+				videos : [ 
+				           {id : 'cZVMU56NXug', title : 'Academic Configuration'},
+				           {id : 'O8p6PWxMxMs', title : 'Feedback Configuration'},
+				           {id : '9BoN9_lTa0g', title : 'Student-Side Feedback'},
+				           {id : 'ayfTlNOJdjc', title : 'Test Configuration'},
+				           {id : '2viO0ZAFp8I', title : 'Students Attempting Test'},
+				           {id : '-fo8PccBduA', title : 'Test Evaluation'},
+				           {id : '1I0YOHO5mJA', title : 'Student Result View'},
+				           {id : '0julvY4Bfos', title : 'Paper Setting (Random)'}
+				         ]
+			}
+		};
+		try
+		{
+			player = $('.youtube-player').player(config);
+		}
+		catch(err)
+		{
+			 
+		}
+		$('#youtubeHelpModal').modal({
+			keyboard : false,
+			backdrop : 'static'
+		}).css({
+			width : '850px',
+			'margin-left' : function() {
+				return -($(this).width() / 2);
+			},
+		});
+		;
+		
+	}
+</script>
+<div id="youtubeHelpModal" class="modal fade hide">
+	<div class="modal-header">
+				   		<button type="button" class="close" data-dismiss="modal">x</button>
+				   		<h3>Help</h3>
+  	</div>
+ 	<div class="modal-body">
+	<div>
+	<table style="width: 100%; height: 100%; overflow: auto;">
+		<tbody><tr>
+			<td>
+				<div class="youtube-player">
+					<div class="youtube-player-video">
+						<div class="youtube-player-object">
+							You need Flash player 8+ and JavaScript enabled to view this video.<a href="http://www.adobe.com/go/getflashplayer" target="_blank" border="0">Get Adobe Flash Player</a>.
+						</div>
+					</div>
+				</div>
+			</td>
+			<td style="vertical-align: top;">
+			<strong>Videos</strong> 
+				<div id="playlist"></div>
+			<strong>PDFs</strong>
+				<div style="display: block;" class="ui-widget-content ui-corner-all">
+					<ol style="height: 168px;" class=" ui-helper-reset">
+						<li class="ui-state-default"><a href="helpDocuments/ConfiguringGEMS.pdf" target="_blank">Configuring GEMS</a></li>
+						<li class="ui-state-default"><a href="helpDocuments/CourseFile.pdf" target="_blank">Course File</a></li>
+						<li class="ui-state-default"><a href="helpDocuments/Event.pdf" target="_blank">Event Configuration</a></li>
+						<li class="ui-state-default"><a href="helpDocuments/RoleWiseBrief.pdf" target="_blank">Role Wise Brief</a></li>
+						<li class="ui-state-default"><a href="helpDocuments/LeaveConfigurationandUsage.pdf" target="_blank">Leave Configuration and Usage</a></li>
+						<li class="ui-state-default"><a href="helpDocuments/Students_Profile_Guide_Engineering.pdf" target="_blank">Students Profile Guide (Engineering)</a></li>
+						<li class="ui-state-default"><a href="helpDocuments/Students_Profile_Guide_Management.pdf" target="_blank">Students Profile Guide (Management)</a></li>
+					</ol>
+				</div>
+			</td>
+		</tr>
+	</tbody></table>
+
+	</div>
+	</div>
+	<div class="modal-footer">
+ 		<input type="button" class="btn notranslate" data-dismiss="modal" value="Close">
+ 	</div>
+</div>
+<div id="gemsHelpModal" class="modal fade hide">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">x</button>
+  	</div>
+ 	<div class="modal-body" style="height:500px;" id="gemsHelpModalBody">
+	
+	</div>
+	<div class="modal-footer">
+ 		<input type="button" class="btn notranslate" data-dismiss="modal" value="Close">
+ 	</div>
+</div>
+
+
+			<div id="showDocumentPreviewDialog" class="modal fade hide">
+				<div class="modal-body" style="max-height:900px;">
+					<button type="button" class="close badge" data-dismiss="modal">X Close This Preview</button>
+					<div class="documentBody"></div>
+				</div>
+			</div>
+<script type="text/javascript">
+function loadHelpDocumentation(docPath,key) {
+	$('#gemsHelpModalBody').loadHelp({'docPath':docPath,'key':key});
+	$('#gemsHelpModal').modal({
+		keyboard : false,
+		backdrop : 'static'
+	}).css({
+		width 	:'950px',
+		'margin-left' : function() {
+			return -($(this).width() / 2);
+		},
+	});
+}
+</script>
+<script type="text/javascript" src="scripts/organizationjs/messageDetails.js"></script>
+ <link rel="stylesheet" type="text/css" media="screen" href="css/stylesheet.css">
+ <link rel="stylesheet" type="text/css" media="screen" href="css/bubbleTip.css">
+ <script type="text/javascript" src="scripts/employeeJs/lessonPlan/photoDialog.js"></script>
+  <script type="text/javascript" src="js/ajaxupload.js"></script>
+	<script type="text/javascript" src="js/bootstrap-tooltip.js"></script>
+	<script type="text/javascript" src="js/bootstrap-popover.js"></script>
+<script type="text/javascript">
+$('document').ready(function(){
+	$('#viewMessagePopUp').on('hidden', function () {
+		closeDialog();
+	});
+});
+</script>
+<div class="modal hide fade" id="viewMessagePopUp" style="margin-left: -450px; display: block; width: 500px;">
+	<div class="modal-header">
+		<button type="button" id="dismissAddCityFrm" class="close" data-dismiss="modal">X</button>
+		<h3>Send message<span id="sendEmployeeName"></span></h3>
+		<!-- <hr style="border-color: black; width: 90%"> -->
+	</div>
+		<div class="modal-body">
+		<div id="msgBox"></div>
+	</div>
+	<div class="modal-footer">
+   		<input type="button" class="btn notranslate" data-dismiss="modal" value="Close">
+	</div>
+</div>
+
+	
+
+<script>
+	//for comment purpose 
+
+	/**
+	 * @author jignesh vaghela
+	 *	@name for comment purpose 
+	 *	@since 5th May 2012
+	 */
+
+	(function($) {
+		$.fn
+				.extend({
+					elastic : function() {
+						var mimics = [ 'paddingTop', 'paddingRight',
+								'paddingBottom', 'paddingLeft', 'fontSize',
+								'lineHeight', 'fontFamily', 'width',
+								'fontWeight' ];
+						return this
+								.each(function() {
+									if (this.type != 'textarea') {
+										return false;
+									}
+									var $textarea = $(this), $twin = $(
+											'<div />').css({
+										'position' : 'absolute',
+										'display' : 'none'
+									}), lineHeight = parseInt($textarea
+											.css('lineHeight'), 70)
+											|| parseInt($textarea
+													.css('fontSize'), '10'), minheight = parseInt(
+											$textarea.css('height'), 70)
+											|| lineHeight * 3, maxheight = parseInt(
+											$textarea.css('max-height'), 10)
+											|| Number.MAX_VALUE, goalheight = 0, i = 0;
+	 								$twin.appendTo($textarea.parent());
+									var i = mimics.length;
+									while (i--) {
+										$twin.css(mimics[i].toString(),
+												$textarea.css(mimics[i]
+														.toString()));
+									}
+									function setHeightAndOverflow(height,
+											overflow) {
+										curratedHeight = Math.floor(parseInt(
+												height, 10));
+										if ($textarea.height() != curratedHeight) {
+											$textarea.css({
+												'height' : curratedHeight
+														+ 'px',
+												'overflow' : overflow
+											});
+										}
+									}
+									function update() {
+										var textareaContent = $textarea.val()
+												.replace(/<|>/g, ' ').replace(
+														/\n/g, '<br />')
+												.replace(/&/g, "&amp;");
+										var twinContent = $twin.html();
+										if (textareaContent + '&nbsp;' != twinContent) {
+											$twin.html(textareaContent
+													+ '&nbsp;');
+											if (Math.abs($twin.height()
+													+ lineHeight
+													- $textarea.height()) > 3) {
+												var goalheight = $twin.height()
+														+ lineHeight;
+												if (goalheight >= maxheight) {
+													setHeightAndOverflow(
+															maxheight, 'auto');
+												} else if (goalheight <= minheight) {
+													setHeightAndOverflow(
+															minheight, 'hidden');
+												} else {
+													setHeightAndOverflow(
+															goalheight,
+															'hidden');
+												}
+											}
+										}
+									}
+									$textarea.css({
+										'overflow' : 'hidden'
+									}).bind(
+											'focus',
+											function() {
+												self.periodicalUpdater = window
+														.setInterval(
+																function() {
+																	update();
+																}, 50);
+											}).bind('blur', function() {
+										clearInterval(self.periodicalUpdater);
+									});
+									update();
+								});
+					}
+				});
+	})(jQuery);
+</script>
+<script type="text/javascript">
+	$('document').ready(function(){
+		$('#postScope').tokenInput("populateAllforStudentPost.json",{
+			theme: "facebook",
+			resultsLimit: 10,
+			placeholder: 'To',
+			propertyToSearch: "name",
+			//preventDuplicates: true,
+            resultsFormatter: function(item){ return "<li><img src='" + item.imageUrl + "' title='" + item.name + "' style='height:25px; width:25px;' />" +
+            										 "<div style='display: inline-block; padding-left: 10px;'><div class='full_name'>" + item.name +
+            										 "</div><div class='email'>" + item.Desc + "</div></div></li>";},
+            tokenFormatter: function(item) { return "<li><p><img src='" + item.imageUrl + "' title='" + item.name + "' style='height:25px; width:25px;' />" + item.name + "</p></li>";}
+		});
+		
+		$('#JobTray').slimScroll({
+		    position: 'right',
+		    height: '200px'
+		});
+		
+		createLightCKEditor('alumniTextPost');
+	
+	});
+	function createLightCKEditor(id)
+	{
+		var instance = CKEDITOR.instances[id];
+		if(instance)
+			CKEDITOR.remove(instance);
+		//CKEDITOR.replace(id,{uiColor: '#FFFFFF',height:'20%',toolbar:[['Font','FontSize','-','Bold', 'Italic', 'Underline','Strike','Subscript','Superscript','RemoveFormat','-','NumberedList', 'BulletedList', '-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock','-']]});
+		//$('#cke_top_'+id+' .cke_toolbox').hide();
+		CKEDITOR.replace(id,{uiColor: '#FFFFFF',height:'20%',
+			/*toolbar:[['Font','FontSize','-','scayt','Bold','Italic', 'Underline','Strike','Subscript','Superscript','RemoveFormat','-','NumberedList', 'BulletedList', '-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock','SCAYT','scayt','Scayt','-','equation']]
+		*/
+		toolbar :
+			[
+				{ name: 'styles', items: [ 'Font', 'FontSize','-' ] },
+				{ name: 'basicstyles', items : [ 'Bold','Italic','Underline','-' ] },
+				{ name: 'paragraph', items : [ 'NumberedList','BulletedList','-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ], },
+				{ name: 'editing', items : [ 'Scayt','-' ] },
+				{ name: 'tools', items : [ 'Maximize' ] }
+			]
+		});
+	}
+</script>
+		<div id="addCourseFileDocumentFromDMS" class="modal fade hide" style="width:">
+		<div class="modal-header">
+	   		<button type="button" class="close" data-dismiss="modal">x</button>
+	   		<h3>Insert Files Using DMS</h3>
+   		</div>
+   		<div class="modal-body">
+   			<table>
+   				<tbody><tr>
+   					<td style="width:30%;border-right:1px solid #aaa;vertical-align:top">
+   						<ul id="ulDMSCourseFileAttachmentTree"></ul>
+   					</td>
+   					<td style="width:70%;vertical-align:top" class="divUserDriveContentArea">
+   						<span class="label label-info searchPath notranslate" style="clear:both;display:none"></span>
+   						<div class="divSearch" style="height:30px;border-bottom:1px solid #aaa;float:right;width:100%">
+						</div>
+						<br>
+   						<div class="divUserFileList" style="float:right;width:100%">
+   						</div>
+   					</td>
+   				</tr>
+   			</tbody></table>
+		</div>
+		<div class="modal-footer">
+			<input type="button" class="btn btn-inverse btn-mini btnInsertFileToDocument  notranslate" disabled="disabled" value="Insert" onclick=""> 
+  			<input type="button" class="btn btn-inverse btn-mini notranslate" data-dismiss="modal" value="Close">
+  		</div>
+</div>
+
+
+
+<div id="showTextDocumentDialog" class="modal fade hide">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">x</button>
+		<h3 class="documentName"></h3>
+	</div>
+	<div class="modal-body">
+		<div class="documentBody"></div>
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-inverse btn-mini notranslate" data-dismiss="modal" value="Close">
+	</div>
+</div>
+
+<div id="showDocumentPreviewDialog" class="modal fade hide">
+	<div class="modal-body" style="max-height:900px;">
+		<button type="button" class="close badge" data-dismiss="modal">X Close This Preview</button>
+		<div class="documentBody"></div>
+	</div>
+</div>
+<div id="showJobTrayAlertsModal" class="modal fade hide">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">x</button>
+		<h3 id="JobAlertCategoryModal"></h3>
+	</div>
+	<div class="modal-body">
+		<div id="JobAlertsModal"></div>
+	</div>
+</div>
+<script type="text/javascript" src="scripts/dms/dmsStudent.js"></script>
+<div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable ui-resizable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-loadingDiv" style="display: none; z-index: 1000; outline: 0px; position: absolute;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-loadingDiv">Please Wait.....</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="loadingDiv" style="text-align: center;" class="ui-dialog-content ui-widget-content"><img src="img/common/ajax-loader.gif"></div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 1000;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 1000;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 1000;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 1000;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se ui-icon-grip-diagonal-se" style="z-index: 1000;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 1000;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 1000;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 1000;"></div></div><div id="skitt-ui" class="skitt-ui--not-listening" style="display: none;"><a id="skitt-toggle-button">&nbsp;</a><label for="skitt-toggle-button" id="skitt-toggle-button__label">Activate Voice Control</label><div id="skitt-listening-box"><div id="skitt-listening-text"><span id="skitt-listening-text__instructions">What can I help you with?</span></div></div></div><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/SpeechKITT/0.3.0/themes/flat.css" id="skitt-style-sheet"><div class="token-input-dropdown-facebook token-input-remove-searchableById-facebook-postScope" style="display: none;"></div></body></html>
