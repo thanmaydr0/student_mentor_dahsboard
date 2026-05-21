@@ -343,49 +343,88 @@ function calculateCgpa(semesterResults: SemesterResult[]): string | null {
 
 function SubjectTable({ subjects }: { subjects: SubjectResult[] }) {
   if (subjects.length === 0) return null
+
+  const totalMarks = subjects.reduce((sum, s) => sum + (s.total ?? 0), 0)
+  const maxMarks = subjects.length * 100
+  const percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(1) : '0'
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
-            <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Code</th>
-            <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Subject</th>
-            <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Internal</th>
-            <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">External</th>
-            <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Total</th>
-            <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Result</th>
+          <tr className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/80">
+            <th className="w-[120px] px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Code</th>
+            <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Subject Name</th>
+            <th className="w-[80px] px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">INT</th>
+            <th className="w-[80px] px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">EXT</th>
+            <th className="w-[80px] px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">Total</th>
+            <th className="w-[80px] px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">Credits</th>
+            <th className="w-[90px] px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
           </tr>
         </thead>
-        <tbody>
-          {subjects.map((subj, idx) => (
-            <tr
-              key={subj.code + idx}
-              className={cn(
-                'border-b border-slate-100 transition-colors',
-                !subj.passed ? 'bg-red-50' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
-              )}
-            >
-              <td className="px-3 py-2 font-mono text-xs font-semibold text-slate-700">{subj.code}</td>
-              <td className="max-w-[300px] truncate px-3 py-2 text-slate-800" title={subj.name}>{subj.name}</td>
-              <td className="px-3 py-2 text-center text-slate-600">{subj.internal ?? '—'}</td>
-              <td className="px-3 py-2 text-center text-slate-600">{subj.external ?? '—'}</td>
-              <td className="px-3 py-2 text-center font-semibold text-slate-800">{subj.total ?? '—'}</td>
-              <td className="px-3 py-2 text-center">
-                {subj.passed ? (
-                  <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">PASS</span>
-                ) : (
-                  <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-700">FAIL</span>
+        <tbody className="divide-y divide-slate-100">
+          {subjects.map((subj, idx) => {
+            const credits = getCreditsForSubject(subj.code)
+            const gp = getGradePoint(subj.total)
+            return (
+              <tr
+                key={subj.code + idx}
+                className={cn(
+                  'transition-colors hover:bg-slate-50/80',
+                  !subj.passed ? 'bg-red-50/60' : ''
                 )}
-              </td>
-            </tr>
-          ))}
+              >
+                <td className="px-4 py-2.5 font-mono text-xs font-bold text-slate-600">{subj.code}</td>
+                <td className="max-w-[280px] truncate px-4 py-2.5 text-sm font-medium text-slate-800" title={subj.name}>{subj.name}</td>
+                <td className="px-4 py-2.5 text-center tabular-nums text-slate-600">{subj.internal ?? '—'}</td>
+                <td className="px-4 py-2.5 text-center tabular-nums text-slate-600">{subj.external ?? '—'}</td>
+                <td className="px-4 py-2.5 text-center">
+                  <span className={cn('tabular-nums font-bold', !subj.passed ? 'text-red-600' : 'text-slate-900')}>
+                    {subj.total ?? '—'}
+                  </span>
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-600">
+                    {credits ?? '?'}
+                  </span>
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  {subj.passed ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700">
+                      <CheckCircle size={12} /> Pass
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-red-700">
+                      <XCircle size={12} /> Fail
+                    </span>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
+      {/* Footer summary */}
+      <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-4 py-2.5">
+        <p className="text-xs font-medium text-slate-500">
+          {subjects.length} subjects • Total: <span className="font-bold text-slate-700">{totalMarks}/{maxMarks}</span> ({percentage}%)
+        </p>
+        <div className="h-2 w-32 overflow-hidden rounded-full bg-slate-200">
+          <div
+            className={cn(
+              'h-full rounded-full transition-all',
+              parseFloat(percentage) >= 70 ? 'bg-emerald-500' :
+              parseFloat(percentage) >= 50 ? 'bg-amber-500' : 'bg-red-500'
+            )}
+            style={{ width: `${Math.min(parseFloat(percentage), 100)}%` }}
+          />
+        </div>
+      </div>
     </div>
   )
 }
 
-function SemesterResultCard({ semResult, onPrint }: { semResult: SemesterResult; onPrint?: () => void }) {
+function SemesterResultCard({ semResult }: { semResult: SemesterResult }) {
   const [expanded, setExpanded] = useState(true)
   const subjects = semResult.mergedSubjects
   const passed = subjects.filter((s) => s.passed).length
@@ -394,47 +433,55 @@ function SemesterResultCard({ semResult, onPrint }: { semResult: SemesterResult;
   const hasReval = semResult.reval !== null
   const frameRef = useRef<HTMLIFrameElement>(null)
 
+  const totalMarks = subjects.reduce((sum, s) => sum + (s.total ?? 0), 0)
+  const avgMarks = subjects.length > 0 ? (totalMarks / subjects.length).toFixed(1) : '0'
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-slate-50"
+        className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-slate-50/50"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <div className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold',
-            overallResult === 'PASS' ? 'bg-emerald-100 text-emerald-700' :
-            overallResult === 'FAIL' ? 'bg-red-100 text-red-700' :
-            'bg-slate-100 text-slate-500'
+            'flex h-12 w-12 items-center justify-center rounded-xl text-sm font-black shadow-sm',
+            overallResult === 'PASS' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white' :
+            overallResult === 'FAIL' ? 'bg-gradient-to-br from-red-400 to-red-600 text-white' :
+            'bg-gradient-to-br from-slate-200 to-slate-300 text-slate-600'
           )}>
             S{semResult.semester}
           </div>
           <div>
-            <p className="text-sm font-bold text-slate-900">{semResult.label}</p>
-            <div className="flex items-center gap-3 text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <p className="text-base font-bold text-slate-900">{semResult.label}</p>
+              {hasReval && (
+                <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                  Reval Merged
+                </span>
+              )}
+            </div>
+            <div className="mt-0.5 flex items-center gap-4 text-xs text-slate-500">
               {overallResult && (
                 <span className={cn(
-                  'font-semibold',
+                  'font-bold',
                   overallResult === 'PASS' ? 'text-emerald-600' : 'text-red-600'
                 )}>
                   {overallResult === 'PASS' ? '✅' : '❌'} {overallResult}
                 </span>
               )}
-              {semResult.sgpa && (
-                <span className="font-semibold text-indigo-600">SGPA: {semResult.sgpa}</span>
-              )}
-              {hasReval && (
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                  Reval merged
-                </span>
-              )}
               <span>{subjects.length} subjects</span>
+              {semResult.sgpa && (
+                <span className="font-bold text-indigo-600">SGPA {semResult.sgpa}</span>
+              )}
             </div>
           </div>
         </div>
-        <div className="text-slate-400">
-          {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        <div className={cn(
+          'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+          expanded ? 'bg-slate-100 text-slate-600' : 'bg-slate-50 text-slate-400'
+        )}>
+          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </button>
 
@@ -445,28 +492,33 @@ function SemesterResultCard({ semResult, onPrint }: { semResult: SemesterResult;
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="space-y-4 border-t border-slate-100 px-5 py-4">
-              {/* Summary stats */}
-              <div className="flex flex-wrap gap-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2">
-                  <p className="text-xs text-slate-500">Passed</p>
-                  <p className="text-lg font-bold text-emerald-600">{passed}</p>
+            <div className="space-y-5 border-t border-slate-100 px-6 py-5">
+              {/* Summary stat cards */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Passed</p>
+                  <p className="mt-0.5 text-2xl font-black text-emerald-700">{passed}</p>
                 </div>
-                {failed > 0 && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2">
-                    <p className="text-xs text-slate-500">Failed</p>
-                    <p className="text-lg font-bold text-red-600">{failed}</p>
-                  </div>
-                )}
+                <div className={cn(
+                  'rounded-xl border p-3 text-center',
+                  failed > 0 ? 'border-red-200 bg-red-50/60' : 'border-slate-200 bg-slate-50/60'
+                )}>
+                  <p className={cn('text-[10px] font-bold uppercase tracking-wider', failed > 0 ? 'text-red-600' : 'text-slate-500')}>Failed</p>
+                  <p className={cn('mt-0.5 text-2xl font-black', failed > 0 ? 'text-red-700' : 'text-slate-400')}>{failed}</p>
+                </div>
                 {semResult.sgpa && (
-                  <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2">
-                    <p className="text-xs text-slate-500">SGPA</p>
-                    <p className="text-lg font-bold text-indigo-700">{semResult.sgpa}</p>
+                  <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">SGPA</p>
+                    <p className="mt-0.5 text-2xl font-black text-indigo-700">{semResult.sgpa}</p>
                   </div>
                 )}
+                <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Avg Marks</p>
+                  <p className="mt-0.5 text-2xl font-black text-slate-700">{avgMarks}</p>
+                </div>
               </div>
 
               {/* Subject table */}
@@ -475,8 +527,8 @@ function SemesterResultCard({ semResult, onPrint }: { semResult: SemesterResult;
               {/* Raw HTML preview — collapsible */}
               {semResult.regular && (
                 <details className="group">
-                  <summary className="cursor-pointer text-xs font-semibold text-slate-500 transition-colors hover:text-slate-700">
-                    Show raw VTU result HTML
+                  <summary className="cursor-pointer rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-500 transition-colors hover:bg-slate-100">
+                    ▸ View raw VTU result HTML
                   </summary>
                   <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <iframe
@@ -496,42 +548,92 @@ function SemesterResultCard({ semResult, onPrint }: { semResult: SemesterResult;
   )
 }
 
-function CgpaCard({ cgpa, semesterResults }: { cgpa: string | null; semesterResults: SemesterResult[] }) {
+function CgpaCard({ 
+  cgpa, 
+  semesterResults,
+  onGenerateOverallReport 
+}: { 
+  cgpa: string | null; 
+  semesterResults: SemesterResult[];
+  onGenerateOverallReport?: () => void;
+}) {
   if (!cgpa && semesterResults.length === 0) return null
 
+  const cgpaNum = cgpa ? parseFloat(cgpa) : 0
+  const cgpaColor = cgpaNum >= 8 ? 'text-emerald-700' : cgpaNum >= 6 ? 'text-indigo-700' : cgpaNum >= 4 ? 'text-amber-700' : 'text-red-700'
+  const cgpaBg = cgpaNum >= 8 ? 'from-emerald-50 via-white to-teal-50 border-emerald-200' :
+                 cgpaNum >= 6 ? 'from-indigo-50 via-white to-violet-50 border-indigo-200' :
+                 cgpaNum >= 4 ? 'from-amber-50 via-white to-orange-50 border-amber-200' :
+                 'from-red-50 via-white to-rose-50 border-red-200'
+
   return (
-    <div className="rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100">
-          <GraduationCap size={24} className="text-indigo-600" />
+    <div className={cn('rounded-2xl border-2 bg-gradient-to-br p-6 shadow-sm', cgpaBg)}>
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100">
+            <GraduationCap size={24} className="text-indigo-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Overall Performance</h3>
+            <p className="text-xs text-slate-500">Credit-weighted across {semesterResults.length} semester(s)</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-bold text-slate-900">Overall Performance</h3>
-          <p className="text-xs text-slate-500">Across all fetched semesters</p>
+        <div className="flex items-center gap-4">
+          {onGenerateOverallReport && semesterResults.length > 0 && (
+            <button
+              onClick={onGenerateOverallReport}
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-white/80 px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition hover:bg-white"
+            >
+              <Sparkles size={14} /> Overall AI Report
+            </button>
+          )}
+          {cgpa && (
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">CGPA</p>
+              <p className={cn('text-4xl font-black tabular-nums', cgpaColor)}>{cgpa}</p>
+            </div>
+          )}
         </div>
       </div>
+      
+      {onGenerateOverallReport && semesterResults.length > 0 && (
+        <button
+          onClick={onGenerateOverallReport}
+          className="mb-4 sm:hidden flex w-full justify-center items-center gap-1.5 rounded-xl border border-indigo-200 bg-white/80 px-3 py-2 text-xs font-bold text-indigo-700 shadow-sm transition hover:bg-white"
+        >
+          <Sparkles size={14} /> Overall AI Report
+        </button>
+      )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* CGPA */}
-        <div className="rounded-xl bg-white/80 border border-indigo-100 p-4 text-center shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">CGPA</p>
-          <p className="mt-1 text-3xl font-black text-indigo-700">{cgpa || '—'}</p>
-        </div>
-
-        {/* Per-semester SGPAs */}
-        {semesterResults.map((sem) => (
-          <div key={sem.semester} className="rounded-xl bg-white/80 border border-slate-200 p-4 text-center shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Sem {sem.semester} SGPA
-            </p>
-            <p className={cn(
-              'mt-1 text-2xl font-bold',
-              sem.sgpa ? 'text-slate-800' : 'text-slate-400'
-            )}>
-              {sem.sgpa || '—'}
-            </p>
-          </div>
-        ))}
+      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-3">
+        {semesterResults.map((sem) => {
+          const sgpaVal = sem.sgpa ? parseFloat(sem.sgpa) : 0
+          const barWidth = sgpaVal > 0 ? (sgpaVal / 10) * 100 : 0
+          return (
+            <div key={sem.semester} className="rounded-xl bg-white/90 border border-slate-200/80 p-3 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  Sem {sem.semester}
+                </p>
+                <p className={cn(
+                  'text-lg font-black tabular-nums',
+                  sem.sgpa ? 'text-slate-800' : 'text-slate-300'
+                )}>
+                  {sem.sgpa || '—'}
+                </p>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-all duration-500',
+                    sgpaVal >= 8 ? 'bg-emerald-500' : sgpaVal >= 6 ? 'bg-indigo-500' : sgpaVal >= 4 ? 'bg-amber-500' : 'bg-red-500'
+                  )}
+                  style={{ width: `${barWidth}%` }}
+                />
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -883,9 +985,69 @@ export default function ResultFetchPage() {
     }
   }
 
+  // Enhanced report for ALL semesters
+  const handleOpenOverallEnhancedReport = async () => {
+    if (semesterResults.length === 0) return
+    setSelectedSemForReport(-1) // -1 signifies "Overall"
+    setIsEnhancedModalOpen(true)
+    
+    if (aiSummary) return
+
+    try {
+      setIsLoadingSummary(true)
+      
+      const allSubjects = semesterResults.flatMap(sem => sem.mergedSubjects.map(subj => ({
+        ...subj,
+        name: `(S${sem.semester}) ${subj.name}`
+      })))
+      
+      const semLabels = semesterResults.map(s => s.semester).join(', ')
+      const overallFail = allSubjects.some(s => !s.passed)
+
+      const { data, error } = await supabase.functions.invoke('generate-ai-summary', {
+        body: {
+          studentName: studentName || '',
+          usn: resultUsn,
+          semester: `All Semesters (${semLabels})`,
+          subjects: allSubjects,
+          result: overallFail ? 'FAIL' : 'PASS',
+        },
+      })
+      if (error) throw error
+      if (!data.ok) throw new Error(data.error || 'Failed to generate summary')
+      setAiSummary(data.summary)
+    } catch (err: any) {
+      toast.error('Could not generate AI summary: ' + err.message)
+    } finally {
+      setIsLoadingSummary(false)
+    }
+  }
+
   // Build a VtuResultItem for the enhanced report modal (compatibility shim)
   const reportItem: VtuResultItem | null = useMemo(() => {
-    if (selectedSemForReport === null || !semesterResults[selectedSemForReport]) return null
+    if (selectedSemForReport === null) return null
+    
+    // Overall Report
+    if (selectedSemForReport === -1) {
+      const allSubjects = semesterResults.flatMap(sem => sem.mergedSubjects)
+      const overallFail = allSubjects.some(s => !s.passed)
+      
+      return {
+        usn: resultUsn || '',
+        fetchedAt: new Date().toISOString(),
+        html: '',
+        summary: {
+          usn: resultUsn || undefined,
+          name: studentName || undefined,
+          semester: `All Semesters`,
+          subjects: allSubjects,
+          result: overallFail ? 'FAIL' : 'PASS',
+        },
+      }
+    }
+    
+    // Single Semester Report
+    if (!semesterResults[selectedSemForReport]) return null
     const sem = semesterResults[selectedSemForReport]
     return sem.regular || {
       usn: resultUsn || '',
@@ -918,38 +1080,39 @@ export default function ResultFetchPage() {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col gap-4"
         >
-          <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
+          {/* Page header */}
+          <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <div className="mb-3 flex items-center gap-3">
+              <div className="mb-4 flex items-center gap-3">
                 <button
                   onClick={() => navigate('/mentor/dashboard')}
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300"
                 >
-                  <ArrowLeft size={16} /> Back to dashboard
+                  <ArrowLeft size={16} /> Back
                 </button>
-                <span className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-                  <Bot size={14} /> AI auto-captcha
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-violet-700 shadow-sm">
+                  <Bot size={14} /> AI Auto-Captcha
                 </span>
               </div>
-              <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">VTU Multi-Semester Results</h1>
-              <p className="mt-1 max-w-2xl text-sm text-slate-500">
-                Fetch results for all semesters at once. Optionally include reval and summer semester results.
-                SGPA per semester and overall CGPA are calculated automatically.
+              <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">VTU Results Dashboard</h1>
+              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500">
+                Fetch and analyze results across all semesters. Reval merge, SGPA/CGPA calculation, and AI reports are built in.
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Semesters</p>
-                <p className="mt-1 text-2xl font-bold text-slate-900">{selectedSemesters.size}</p>
+            {/* Quick stats */}
+            <div className="flex gap-3">
+              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm min-w-[80px]">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Semesters</p>
+                <p className="mt-0.5 text-2xl font-black text-slate-900">{selectedSemesters.size}</p>
               </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Students</p>
-                <p className="mt-1 text-2xl font-bold text-slate-900">{mentorStudents?.length ?? 0}</p>
+              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm min-w-[80px]">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Students</p>
+                <p className="mt-0.5 text-2xl font-black text-slate-900">{mentorStudents?.length ?? 0}</p>
               </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">CGPA</p>
-                <p className="mt-1 text-2xl font-bold text-indigo-700">{cgpa || '—'}</p>
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-center shadow-sm min-w-[80px]">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">CGPA</p>
+                <p className="mt-0.5 text-2xl font-black text-indigo-700">{cgpa || '—'}</p>
               </div>
             </div>
           </div>
@@ -959,8 +1122,12 @@ export default function ResultFetchPage() {
           {/* ── Left column: controls ────────────────────────────────────── */}
           <div className="lg:col-span-1 space-y-6">
             {/* USN + Fetch */}
-            <Card title="Fetch results" action={<Sparkles size={16} className="text-brand-600" />}>
-              <div className="space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
+                <h3 className="text-sm font-bold text-slate-900">Fetch Results</h3>
+                <Sparkles size={16} className="text-brand-600" />
+              </div>
+              <div className="p-5 space-y-4">
                 <Input
                   label="USN"
                   value={usn}
@@ -971,23 +1138,29 @@ export default function ResultFetchPage() {
 
                 {/* Semester selection */}
                 <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Select semesters
+                  <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Select Semesters
                   </p>
                   <div className="space-y-2">
                     {semCheckboxes.map(({ sem, hasRevalUrl }) => (
-                      <div key={sem} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                        <label className="flex items-center gap-2 cursor-pointer">
+                      <div key={sem} className={cn(
+                        'rounded-xl border p-3 transition-all',
+                        selectedSemesters.has(sem) ? 'border-indigo-200 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50'
+                      )}>
+                        <label className="flex items-center gap-2.5 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={selectedSemesters.has(sem)}
                             onChange={() => toggleSemester(sem)}
                             className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                           />
-                          <span className="text-sm font-semibold text-slate-800">Semester {sem}</span>
+                          <span className={cn(
+                            'text-sm font-semibold',
+                            selectedSemesters.has(sem) ? 'text-indigo-800' : 'text-slate-700'
+                          )}>Semester {sem}</span>
                         </label>
 
-                        {/* Reval toggle — only if semester is selected and reval URL exists */}
+                        {/* Reval toggle */}
                         {selectedSemesters.has(sem) && hasRevalUrl && (
                           <label className="mt-2 ml-6 flex items-center gap-2 cursor-pointer">
                             <input
@@ -996,7 +1169,7 @@ export default function ResultFetchPage() {
                               onChange={() => toggleReval(sem)}
                               className="h-3.5 w-3.5 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
                             />
-                            <span className="text-xs text-slate-600">Include reval</span>
+                            <span className="text-xs font-medium text-slate-500">Include revaluation</span>
                           </label>
                         )}
                       </div>
@@ -1005,8 +1178,11 @@ export default function ResultFetchPage() {
                 </div>
 
                 {/* Summer semester */}
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className={cn(
+                  'rounded-xl border p-3 space-y-2 transition-all',
+                  includeSummer ? 'border-amber-300 bg-amber-50/50' : 'border-amber-200 bg-amber-50/30'
+                )}>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={includeSummer}
@@ -1017,7 +1193,7 @@ export default function ResultFetchPage() {
                       className="h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                     />
                     <span className="text-sm font-semibold text-amber-800">Summer Semester</span>
-                    <span className="text-xs text-amber-600">(optional)</span>
+                    <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-600">Optional</span>
                   </label>
                   {includeSummer && (
                     <label className="ml-6 flex items-center gap-2 cursor-pointer">
@@ -1027,7 +1203,7 @@ export default function ResultFetchPage() {
                         onChange={() => setIncludeSummerReval(!includeSummerReval)}
                         className="h-3.5 w-3.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                       />
-                      <span className="text-xs text-amber-700">Include summer reval</span>
+                      <span className="text-xs font-medium text-amber-700">Include summer reval</span>
                     </label>
                   )}
                 </div>
@@ -1036,9 +1212,9 @@ export default function ResultFetchPage() {
                   <FileText size={16} className="mr-2" /> {isFetching ? 'Fetching results...' : `Fetch ${selectedSemesters.size} semester(s)`}
                 </Button>
 
-                <div className="flex items-start gap-2 rounded-xl border border-violet-100 bg-violet-50 p-3">
-                  <Bot size={16} className="mt-0.5 shrink-0 text-violet-600" />
-                  <p className="text-xs text-violet-700">
+                <div className="flex items-start gap-2.5 rounded-xl border border-violet-100 bg-violet-50/50 p-3">
+                  <Bot size={16} className="mt-0.5 shrink-0 text-violet-500" />
+                  <p className="text-[11px] leading-relaxed text-violet-600">
                     Each semester requires a separate captcha solve. Fetching {selectedSemesters.size} semester(s)
                     {includeReval.size > 0 ? ` + ${includeReval.size} reval(s)` : ''}
                     {includeSummer ? ' + summer' : ''}
@@ -1047,11 +1223,15 @@ export default function ResultFetchPage() {
                   </p>
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* Mentor student queue */}
-            <Card title="Mentor student queue" action={<Users size={16} className="text-brand-600" />}>
-              <div className="space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
+                <h3 className="text-sm font-bold text-slate-900">Student Queue</h3>
+                <Users size={16} className="text-brand-600" />
+              </div>
+              <div className="p-5 space-y-4">
                 <Input
                   label="Search students"
                   value={filterQuery}
@@ -1059,46 +1239,56 @@ export default function ResultFetchPage() {
                   placeholder="Filter by name, USN, or branch"
                   icon={Search}
                 />
-                <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+                <div className="max-h-[28rem] space-y-2.5 overflow-y-auto pr-1">
                   {studentsLoading ? (
                     Array.from({ length: 4 }).map((_, idx) => (
-                      <Skeleton key={idx} className="h-20 w-full rounded-2xl" />
+                      <Skeleton key={idx} className="h-20 w-full rounded-xl" />
                     ))
                   ) : filteredStudents.length > 0 ? (
                     filteredStudents.map((student) => {
                       const isBusy = bulkBusyUsn === student.id
                       return (
-                        <div key={student.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="font-semibold text-slate-900">{student.full_name}</p>
-                              <p className="text-xs text-slate-500">
+                        <div key={student.id} className="group rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 transition-all hover:border-slate-300 hover:bg-slate-50">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-slate-900 truncate">{student.full_name}</p>
+                              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
                                 {student.id} • {student.branch} • Sem {student.semester}
                               </p>
                             </div>
-                            <Button size="sm" variant="ghost" onClick={() => handleFillStudent(student)}>
-                              Use
-                            </Button>
-                          </div>
-                          <div className="mt-3 flex gap-2">
-                            <Button size="sm" loading={isBusy} onClick={() => handleFetchForStudent(student)}>
-                              Fetch all
-                            </Button>
-                            <Button size="sm" variant="secondary" onClick={() => setUsn(student.id.toUpperCase())}>
-                              Load USN
-                            </Button>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                onClick={() => handleFillStudent(student)}
+                                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 hover:border-slate-300"
+                              >
+                                Use
+                              </button>
+                              <button
+                                onClick={() => handleFetchForStudent(student)}
+                                disabled={isBusy}
+                                className={cn(
+                                  'rounded-lg px-2.5 py-1.5 text-[11px] font-bold shadow-sm transition',
+                                  isBusy
+                                    ? 'bg-slate-100 text-slate-400 cursor-wait'
+                                    : 'bg-brand-600 text-white hover:bg-brand-700'
+                                )}
+                              >
+                                {isBusy ? <Loader2 size={12} className="animate-spin" /> : 'Fetch All'}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )
                     })
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                      No students match the filter.
+                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+                      <Search size={20} className="mx-auto mb-2 text-slate-300" />
+                      <p className="text-sm font-medium text-slate-500">No students match the filter.</p>
                     </div>
                   )}
                 </div>
               </div>
-            </Card>
+            </div>
           </div>
 
           {/* ── Right column: results ────────────────────────────────────── */}
@@ -1107,20 +1297,44 @@ export default function ResultFetchPage() {
             {isFetching && <FetchProgressPanel progress={fetchProgress} />}
 
             {/* CGPA Overview Card */}
-            {hasResults && <CgpaCard cgpa={cgpa} semesterResults={semesterResults} />}
+            {hasResults && <CgpaCard cgpa={cgpa} semesterResults={semesterResults} onGenerateOverallReport={handleOpenOverallEnhancedReport} />}
 
-            {/* Student info */}
+            {/* Student info banner */}
             {hasResults && (studentName || resultUsn) && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 font-bold text-lg">
-                    {(studentName || '?')[0]}
+              <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-white via-slate-50/50 to-white p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-lg font-black shadow-md">
+                      {(studentName || '?')[0]}
+                    </div>
+                    <div>
+                      <p className="text-xl font-black text-slate-900">{studentName || resultUsn}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">{resultUsn}</span>
+                        {studentBranch && <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-600">{studentBranch}</span>}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-lg font-bold text-slate-900">{studentName || resultUsn}</p>
-                    <p className="text-sm text-slate-500">
-                      {resultUsn}{studentBranch ? ` • ${studentBranch}` : ''}
-                    </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        // Export as text summary
+                        let text = `VTU Results — ${studentName || resultUsn}\n${'='.repeat(40)}\n\n`
+                        semesterResults.forEach(sem => {
+                          text += `📘 ${sem.label} (SGPA: ${sem.sgpa || 'N/A'})\n`
+                          sem.mergedSubjects.forEach(s => {
+                            text += `  ${s.code} ${s.name}: ${s.total}/100 ${s.passed ? '✅' : '❌'}\n`
+                          })
+                          text += '\n'
+                        })
+                        if (cgpa) text += `Overall CGPA: ${cgpa}\n`
+                        navigator.clipboard.writeText(text)
+                        toast.success('Results copied to clipboard!')
+                      }}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50"
+                    >
+                      <Download size={14} className="inline mr-1.5" /> Export
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1165,26 +1379,49 @@ export default function ResultFetchPage() {
 
             {/* Empty state */}
             {!hasResults && !isFetching && (
-              <Card title="Results">
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-                  <GraduationCap size={40} className="mx-auto mb-3 text-slate-300" />
-                  <p className="text-sm font-semibold text-slate-500">No results fetched yet</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Enter a USN, select semesters, and click Fetch to get started.
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
+                  <h3 className="text-sm font-bold text-slate-900">Results</h3>
+                </div>
+                <div className="p-8 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+                    <GraduationCap size={32} className="text-slate-300" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-600">No results fetched yet</p>
+                  <p className="mt-1 text-xs text-slate-400 max-w-xs mx-auto">
+                    Enter a USN in the left panel, select your semesters, and click Fetch to get started.
                   </p>
                 </div>
-              </Card>
+              </div>
             )}
 
-            {/* Notes */}
-            <Card title="Workflow notes">
-              <ul className="space-y-3 text-sm text-slate-600">
-                <li className="flex gap-2"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand-500" /> Results are fetched sequentially — each semester requires a separate VTU captcha session.</li>
-                <li className="flex gap-2"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand-500" /> When reval is enabled, marks are merged automatically — the better score per subject is kept.</li>
-                <li className="flex gap-2"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand-500" /> CGPA is calculated as the average of all regular semester SGPAs (summer is excluded).</li>
-                <li className="flex gap-2"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" /> Summer semester is separate and optional — not all students will have summer results.</li>
-              </ul>
-            </Card>
+            {/* Workflow notes */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
+                <h3 className="text-sm font-bold text-slate-900">How It Works</h3>
+                <TrendingUp size={16} className="text-slate-400" />
+              </div>
+              <div className="p-5">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex gap-3 rounded-xl bg-slate-50 p-3">
+                    <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-brand-500" />
+                    <p className="text-xs leading-relaxed text-slate-600">Results are fetched sequentially — each semester requires a separate VTU captcha session.</p>
+                  </div>
+                  <div className="flex gap-3 rounded-xl bg-slate-50 p-3">
+                    <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-brand-500" />
+                    <p className="text-xs leading-relaxed text-slate-600">Reval marks are merged automatically — the better score per subject is kept.</p>
+                  </div>
+                  <div className="flex gap-3 rounded-xl bg-slate-50 p-3">
+                    <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-brand-500" />
+                    <p className="text-xs leading-relaxed text-slate-600">CGPA is calculated as the credit-weighted average of all regular semester SGPAs.</p>
+                  </div>
+                  <div className="flex gap-3 rounded-xl bg-amber-50/80 p-3">
+                    <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+                    <p className="text-xs leading-relaxed text-slate-600">Summer semester is separate and optional — not all students will have summer results.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

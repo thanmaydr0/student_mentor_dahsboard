@@ -25,7 +25,10 @@ export function EnhancedReportModal({
   if (!isOpen) return null
 
   const isPassing = student?.summary?.result?.toUpperCase() === 'PASS'
+  const isOverall = student?.summary?.semester === 'All Semesters'
+  
   const [isSendingEmail, setIsSendingEmail] = useState(false)
+  const [isSendingTelegram, setIsSendingTelegram] = useState(false)
   const [isSendingSms, setIsSendingSms] = useState<'sms' | 'whatsapp' | null>(null)
 
   const handleSendMessage = async (type: 'sms' | 'whatsapp') => {
@@ -50,6 +53,30 @@ export function EnhancedReportModal({
       toast.error(err.message || 'Could not send message')
     } finally {
       setIsSendingSms(null)
+    }
+  }
+
+  const handleSendTelegram = async () => {
+    try {
+      setIsSendingTelegram(true)
+      const messageBody = `📢 <b>Academic AI Report for ${student?.summary?.name}</b>\nUSN: ${student?.usn}\nSemester: ${student?.summary?.semester}\nResult: ${student?.summary?.result}\n\n<b>AI Summary:</b>\n${aiSummary}`
+      
+      const { data, error } = await supabase.functions.invoke('telegram-bot', {
+        body: {
+          action: 'send_message',
+          to_student_id: student?.usn,
+          message_body: messageBody
+        }
+      })
+
+      if (error) throw error
+      if (!data.ok || !data.sent) throw new Error(data.error || 'Failed to send Telegram message. No parent linked.')
+      
+      toast.success('Telegram successfully sent to connected parents!')
+    } catch (err: any) {
+      toast.error(err.message || 'Could not send Telegram message')
+    } finally {
+      setIsSendingTelegram(false)
     }
   }
 
@@ -138,9 +165,17 @@ export function EnhancedReportModal({
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 print-hide">
           <div className="flex items-center gap-2 text-indigo-900">
             <Sparkles className="h-5 w-5 text-indigo-500" />
-            <h2 className="text-lg font-bold">Enhanced AI Academic Report</h2>
+            <h2 className="text-lg font-bold">{isOverall ? 'Overall Academic AI Report' : 'Enhanced AI Academic Report'}</h2>
           </div>
           <div className="flex items-center gap-2">
+            <Button 
+              onClick={handleSendTelegram} 
+              disabled={isLoadingSummary || isSendingTelegram || !aiSummary}
+              className="bg-sky-500 hover:bg-sky-600 text-white px-3"
+              title="Send via Telegram"
+            >
+              {isSendingTelegram ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            </Button>
             <Button 
               onClick={() => handleSendMessage('whatsapp')} 
               disabled={isLoadingSummary || isSendingSms !== null || !aiSummary}
@@ -152,7 +187,7 @@ export function EnhancedReportModal({
             <Button 
               onClick={() => handleSendMessage('sms')} 
               disabled={isLoadingSummary || isSendingSms !== null || !aiSummary}
-              className="bg-sky-600 hover:bg-sky-700 text-white px-3"
+              className="bg-slate-600 hover:bg-slate-700 text-white px-3"
               title="Send via SMS"
             >
               {isSendingSms === 'sms' ? <Loader2 size={16} className="animate-spin" /> : <Smartphone size={16} />}
