@@ -29,8 +29,14 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // WebRTC State
-  const [callState, setCallState] = useState<'idle' | 'calling' | 'receiving' | 'in-call'>('idle')
-  const [isVideoCall, setIsVideoCall] = useState(false)
+  const [callState, setCallState] = useState<'idle' | 'calling' | 'receiving' | 'in-call'>(() => {
+    // @ts-ignore
+    return typeof window !== 'undefined' && window.incomingCallOffer ? 'receiving' : 'idle'
+  })
+  const [isVideoCall, setIsVideoCall] = useState<boolean>(() => {
+    // @ts-ignore
+    return typeof window !== 'undefined' && window.incomingCallIsVideo ? true : false
+  })
   const [isMuted, setIsMuted] = useState(false)
   const [isVideoOff, setIsVideoOff] = useState(false)
   const [hasRemoteVideo, setHasRemoteVideo] = useState(false)
@@ -44,6 +50,18 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
   const channelRef = useRef<any>(null)
+
+  // Track active chat globally to prevent duplicate modals
+  useEffect(() => {
+    if (isOpen) {
+      // @ts-ignore
+      window.activeChatPeerId = peerId
+    }
+    return () => {
+      // @ts-ignore
+      window.activeChatPeerId = null
+    }
+  }, [isOpen, peerId])
 
   // 1. Fetch Chat History & Subscribe
   useEffect(() => {
@@ -209,6 +227,26 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
       sendSignal('call-offer', { sdp: offer, isVideo: withVideo })
+
+      // Wake up the receiver globally if they don't have this specific chat open
+      const globalChannel = supabase.channel(`webrtc-global-${peerId}`)
+      globalChannel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await globalChannel.send({
+            type: 'broadcast',
+            event: 'webrtc-signal',
+            payload: {
+              type: 'call-offer',
+              callerId: currentUserId,
+              callerRole: 'Caller', // Generic fallback
+              isVideo: withVideo,
+              sdp: offer
+            }
+          })
+          setTimeout(() => supabase.removeChannel(globalChannel), 2000)
+        }
+      })
+
     } catch (e) {
       cleanupCall()
     }

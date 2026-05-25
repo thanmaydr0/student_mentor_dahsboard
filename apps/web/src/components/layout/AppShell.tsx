@@ -3,6 +3,7 @@ import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 import { useTheme } from '../../context/ThemeContext'
 import LightRays from '../ui/LightRays'
+import GlobalCallManager from '../chat/GlobalCallManager'
 
 interface AppShellProps {
   role: 'student' | 'mentor'
@@ -72,6 +73,7 @@ export default function AppShell({ role, children }: AppShellProps) {
           </main>
         </div>
       </div>
+      <GlobalCallManager />
     </div>
   )
 }
