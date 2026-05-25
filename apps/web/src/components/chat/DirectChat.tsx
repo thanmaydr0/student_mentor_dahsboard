@@ -120,24 +120,27 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
         setCallState('receiving')
         setIsVideoCall(payload.isVideo || false)
         iceCandidateQueueRef.current = []
-        // Store offer to accept later
         // @ts-ignore
         window.incomingCallOffer = payload.sdp
+        // @ts-ignore
+        window.incomingCallIceCandidates = []
       } else if (payload.type === 'call-answer') {
         if (peerConnectionRef.current) {
           setCallState('in-call')
           await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(payload.sdp))
           
-          // Re-transmit caller's ICE candidates to the receiver just in case they were lost while ringing globally
-          localIceCandidatesRef.current.forEach(candidate => {
+          // CRITICAL: Re-transmit ALL of our ICE candidates to the receiver.
+          // They may have missed candidates sent before their DirectChat component mounted.
+          for (const candidate of localIceCandidatesRef.current) {
             sendSignal('ice-candidate', { candidate })
-          })
+          }
 
+          // Process any queued ICE candidates from the receiver
           for (const candidate of iceCandidateQueueRef.current) {
             try {
               await peerConnectionRef.current?.addIceCandidate(new RTCIceCandidate(candidate))
             } catch (e) {
-              console.error('Error adding queued ICE candidate', e)
+              console.warn('[WebRTC] Error adding queued ICE candidate:', e)
             }
           }
           iceCandidateQueueRef.current = []
@@ -147,20 +150,21 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
           try {
             await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate))
           } catch (e) {
-            console.error('Error adding ICE candidate', e)
+            console.warn('[WebRTC] Error adding ICE candidate:', e)
           }
         } else {
+          // Buffer for later — PeerConnection not ready yet
           iceCandidateQueueRef.current.push(payload.candidate)
         }
       } else if (payload.type === 'call-end') {
-        cleanupCall()
+        cleanupCall(false) // Don't echo call-end back
         toast("Call ended by " + peerRole)
       }
     }).subscribe()
 
     return () => {
-      cleanupCall()
-      supabase.removeChannel(channelRef.current)
+      cleanupCall(true) // Notify peer if we had an active call
+      if (channelRef.current) supabase.removeChannel(channelRef.current)
     }
   }, [isOpen, currentUserId, peerId, peerRole])
 
@@ -172,78 +176,167 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
     })
   }
 
-  // 3. WebRTC Methods
-  const initPeerConnection = async (withVideo: boolean) => {
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun.cloudflare.com:3478' },
-        { urls: 'stun:global.stun.twilio.com:3478' },
-        {
-          urls: 'turn:openrelay.metered.ca:80',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
-        },
-        {
-          urls: 'turn:openrelay.metered.ca:443',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
-        },
-        {
-          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
-        }
-      ]
-    })
-    peerConnectionRef.current = pc
+  // ═══════════════════════════════════════════════════════════════
+  // 3. TURN Credential Fetching (Metered.ca free tier — 500GB/mo)
+  // ═══════════════════════════════════════════════════════════════
+  const fetchIceServers = async (): Promise<RTCIceServer[]> => {
+    const apiKey = import.meta.env.VITE_METERED_API_KEY
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        localIceCandidatesRef.current.push(event.candidate)
-        sendSignal('ice-candidate', { candidate: event.candidate })
-      }
-    }
+    // Always include redundant public STUN servers for fastest candidate gathering
+    const stunServers: RTCIceServer[] = [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+      { urls: 'stun:global.stun.twilio.com:3478' },
+    ]
 
-    pc.ontrack = (event) => {
-      const stream = event.streams && event.streams[0] ? event.streams[0] : new MediaStream([event.track])
-      if (event.track.kind === 'video' && remoteVideoRef.current) {
-        if (!remoteVideoRef.current.srcObject) remoteVideoRef.current.srcObject = stream
-        setHasRemoteVideo(true)
-      } else if (event.track.kind === 'audio' && remoteAudioRef.current) {
-        if (!remoteAudioRef.current.srcObject) remoteAudioRef.current.srcObject = stream
-      }
+    if (!apiKey) {
+      console.warn('[WebRTC] ⚠️ No VITE_METERED_API_KEY configured — TURN relay unavailable. Cross-network calls WILL FAIL for most Indian ISPs.')
+      return stunServers
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: withVideo })
-      localStreamRef.current = stream
+      const appName = import.meta.env.VITE_METERED_APP_NAME || 'edupredict'
+      const res = await fetch(
+        `https://${appName}.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`
+      )
+      if (!res.ok) throw new Error(`Metered API returned ${res.status}`)
+      const turnServers: RTCIceServer[] = await res.json()
+      console.log('[WebRTC] ✅ TURN credentials fetched:', turnServers.length, 'relay servers')
+      return [...stunServers, ...turnServers]
+    } catch (err) {
+      console.error('[WebRTC] ❌ TURN credential fetch failed:', err)
+      return stunServers
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 4. PeerConnection Initialization with Full Monitoring
+  // ═══════════════════════════════════════════════════════════════
+  const initPeerConnection = async (withVideo: boolean) => {
+    const iceServers = await fetchIceServers()
+    console.log('[WebRTC] Initializing with', iceServers.length, 'ICE servers')
+
+    const pc = new RTCPeerConnection({
+      iceServers,
+      iceCandidatePoolSize: 10, // Pre-allocate candidates for faster connection
+    })
+    peerConnectionRef.current = pc
+
+    // ── ICE Candidate Gathering ─────────────────────────────────
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        const json = event.candidate.toJSON()
+        localIceCandidatesRef.current.push(json)
+        sendSignal('ice-candidate', { candidate: json })
+      }
+    }
+
+    // ── Connection State Monitoring with Auto-Recovery ──────────
+    pc.oniceconnectionstatechange = () => {
+      const state = pc.iceConnectionState
+      console.log('[WebRTC] ICE state →', state)
+
+      switch (state) {
+        case 'checking':
+          toast('Establishing connection...', { icon: '🔄', id: 'webrtc-status', duration: 5000 })
+          break
+        case 'connected':
+        case 'completed':
+          toast.success('Call connected!', { id: 'webrtc-status' })
+          break
+        case 'disconnected':
+          toast('Connection interrupted, recovering...', { icon: '⚠️', id: 'webrtc-status' })
+          // Wait 3s then attempt ICE restart if still disconnected
+          setTimeout(() => {
+            if (peerConnectionRef.current?.iceConnectionState === 'disconnected') {
+              console.log('[WebRTC] Auto ICE restart...')
+              peerConnectionRef.current.restartIce()
+            }
+          }, 3000)
+          break
+        case 'failed':
+          toast.error('Connection failed. Retrying...', { id: 'webrtc-status' })
+          try {
+            pc.restartIce()
+          } catch {
+            toast.error('Could not recover. Please hang up and try again.', { id: 'webrtc-status' })
+          }
+          break
+      }
+    }
+
+    // ── Remote Track Handler (Audio + Video) ────────────────────
+    pc.ontrack = (event) => {
+      console.log('[WebRTC] Remote track received:', event.track.kind, '| readyState:', event.track.readyState)
       
+      // Prefer event.streams[0]; fallback to manual MediaStream (Safari/iOS compat)
+      const stream = event.streams?.[0] || new MediaStream([event.track])
+
+      if (event.track.kind === 'audio' && remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = stream
+        // Explicit play() to bypass autoplay policy — user already gestured by clicking Call/Accept
+        remoteAudioRef.current.play().catch(e =>
+          console.warn('[WebRTC] Audio autoplay blocked:', e)
+        )
+      }
+
+      if (event.track.kind === 'video' && remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = stream
+        remoteVideoRef.current.play().catch(e =>
+          console.warn('[WebRTC] Video autoplay blocked:', e)
+        )
+        setHasRemoteVideo(true)
+      }
+    }
+
+    // ── Acquire Local Media ─────────────────────────────────────
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+        video: withVideo
+          ? { width: { ideal: 1280, max: 1920 }, height: { ideal: 720, max: 1080 }, facingMode: 'user' }
+          : false,
+      })
+      localStreamRef.current = stream
+
       if (withVideo && localVideoRef.current) {
         localVideoRef.current.srcObject = stream
       }
 
       stream.getTracks().forEach(track => pc.addTrack(track, stream))
     } catch (err) {
-      toast.error(withVideo ? "Camera or Microphone access denied." : "Microphone access denied.")
+      toast.error(withVideo ? 'Camera or Microphone access denied.' : 'Microphone access denied.')
       throw err
     }
+
     return pc
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // 5. Call Lifecycle Methods
+  // ═══════════════════════════════════════════════════════════════
   const startCall = async (withVideo: boolean) => {
     setIsVideoCall(withVideo)
     setCallState('calling')
     localIceCandidatesRef.current = []
     iceCandidateQueueRef.current = []
+
     try {
       const pc = await initPeerConnection(withVideo)
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
-      sendSignal('call-offer', { sdp: offer, isVideo: withVideo })
 
-      // Wake up the receiver globally if they don't have this specific chat open
+      const sdpJson = pc.localDescription!.toJSON()
+      sendSignal('call-offer', { sdp: sdpJson, isVideo: withVideo })
+
+      // Also broadcast on global channel for when receiver doesn't have this chat open
       const globalChannel = supabase.channel(`webrtc-global-${peerId}`)
       globalChannel.subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -253,60 +346,93 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
             payload: {
               type: 'call-offer',
               callerId: currentUserId,
-              callerRole: 'Caller', // Generic fallback
+              callerRole: 'Caller',
               isVideo: withVideo,
-              sdp: offer
+              sdp: sdpJson,
             }
           })
           setTimeout(() => supabase.removeChannel(globalChannel), 2000)
         }
       })
-
     } catch (e) {
-      cleanupCall()
+      console.error('[WebRTC] startCall error:', e)
+      cleanupCall(false)
     }
   }
 
   const acceptCall = async () => {
     setCallState('in-call')
+    localIceCandidatesRef.current = []
+
     try {
       const pc = await initPeerConnection(isVideoCall)
       // @ts-ignore
       const offer = window.incomingCallOffer
-      if (offer) {
-        await pc.setRemoteDescription(new RTCSessionDescription(offer))
-        
-        for (const candidate of iceCandidateQueueRef.current) {
-          try {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate))
-          } catch (e) {
-            console.error('Error adding queued ICE candidate on accept', e)
-          }
-        }
-        iceCandidateQueueRef.current = []
-
-        const answer = await pc.createAnswer()
-        await pc.setLocalDescription(answer)
-        sendSignal('call-answer', { sdp: answer })
+      if (!offer) {
+        toast.error('Call offer expired. Ask them to call again.')
+        cleanupCall(false)
+        return
       }
+
+      await pc.setRemoteDescription(new RTCSessionDescription(offer))
+
+      // Process ALL queued ICE candidates — from both room channel buffer and global buffer
+      // @ts-ignore
+      const globalCandidates: any[] = window.incomingCallIceCandidates || []
+      const allQueued = [...globalCandidates, ...iceCandidateQueueRef.current]
+      console.log('[WebRTC] Processing', allQueued.length, 'queued ICE candidates on accept')
+
+      for (const candidate of allQueued) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate))
+        } catch (e) {
+          console.warn('[WebRTC] Error adding queued candidate:', e)
+        }
+      }
+      iceCandidateQueueRef.current = []
+      // @ts-ignore
+      window.incomingCallIceCandidates = []
+
+      const answer = await pc.createAnswer()
+      await pc.setLocalDescription(answer)
+      sendSignal('call-answer', { sdp: pc.localDescription!.toJSON() })
     } catch (e) {
-      cleanupCall()
+      console.error('[WebRTC] acceptCall error:', e)
+      toast.error('Failed to accept call.')
+      cleanupCall(true)
     }
   }
 
-  const cleanupCall = () => {
-    if (callState !== 'idle') {
-      sendSignal('call-end', {})
+  const cleanupCall = (sendEnd = true) => {
+    // Notify peer only if we have an active PeerConnection
+    if (sendEnd && peerConnectionRef.current) {
+      try { sendSignal('call-end', {}) } catch {}
     }
+
+    // Stop all local media tracks
     localStreamRef.current?.getTracks().forEach(track => track.stop())
+    localStreamRef.current = null
+
+    // Tear down PeerConnection and remove all listeners
     if (peerConnectionRef.current) {
+      peerConnectionRef.current.onicecandidate = null
+      peerConnectionRef.current.oniceconnectionstatechange = null
+      peerConnectionRef.current.ontrack = null
       peerConnectionRef.current.close()
       peerConnectionRef.current = null
     }
+
+    // Clear media elements
     if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null
     if (localVideoRef.current) localVideoRef.current.srcObject = null
-    
+
+    // Clear global state
+    // @ts-ignore
+    window.incomingCallOffer = null
+    // @ts-ignore
+    window.incomingCallIceCandidates = []
+
     setCallState('idle')
     setIsVideoCall(false)
     setIsMuted(false)
@@ -420,7 +546,7 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
                         )}
                       </>
                     )}
-                    <button onClick={cleanupCall} className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition" title="End Call">
+                    <button onClick={() => cleanupCall(true)} className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition" title="End Call">
                       <PhoneOff size={16} />
                     </button>
                   </div>
@@ -430,7 +556,7 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
           </AnimatePresence>
 
           {/* Hidden Audio Tag for remote voice stream */}
-          <audio ref={remoteAudioRef} autoPlay />
+          <audio ref={remoteAudioRef} autoPlay playsInline />
 
           {/* Messages List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-slate-900/50 relative">
