@@ -33,8 +33,10 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
   const [isVideoCall, setIsVideoCall] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isVideoOff, setIsVideoOff] = useState(false)
+  const [hasRemoteVideo, setHasRemoteVideo] = useState(false)
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
+  const iceCandidateQueueRef = useRef<any[]>([])
   const localStreamRef = useRef<MediaStream | null>(null)
   
   // Media element refs
@@ -98,16 +100,31 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
       if (payload.type === 'call-offer') {
         setCallState('receiving')
         setIsVideoCall(payload.isVideo || false)
+        iceCandidateQueueRef.current = []
         // Store offer to accept later
         // @ts-ignore
         window.incomingCallOffer = payload.sdp
       } else if (payload.type === 'call-answer') {
         if (peerConnectionRef.current) {
           await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+          iceCandidateQueueRef.current.forEach(async (candidate) => {
+            try {
+              await peerConnectionRef.current?.addIceCandidate(new RTCIceCandidate(candidate))
+            } catch (e) {
+              console.error('Error adding queued ICE candidate', e)
+            }
+          })
+          iceCandidateQueueRef.current = []
         }
       } else if (payload.type === 'ice-candidate') {
-        if (peerConnectionRef.current) {
-          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate))
+        if (peerConnectionRef.current && peerConnectionRef.current.remoteDescription) {
+          try {
+            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate))
+          } catch (e) {
+            console.error('Error adding ICE candidate', e)
+          }
+        } else {
+          iceCandidateQueueRef.current.push(payload.candidate)
         }
       } else if (payload.type === 'call-end') {
         cleanupCall()
@@ -141,6 +158,7 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
     pc.ontrack = (event) => {
       if (event.track.kind === 'video' && remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0]
+        setHasRemoteVideo(true)
       } else if (event.track.kind === 'audio' && remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = event.streams[0]
       }
@@ -183,6 +201,16 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
       const offer = window.incomingCallOffer
       if (offer) {
         await pc.setRemoteDescription(new RTCSessionDescription(offer))
+        
+        iceCandidateQueueRef.current.forEach(async (candidate) => {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate))
+          } catch (e) {
+            console.error('Error adding queued ICE candidate on accept', e)
+          }
+        })
+        iceCandidateQueueRef.current = []
+
         const answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
         sendSignal('call-answer', { sdp: answer })
@@ -209,6 +237,8 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
     setIsVideoCall(false)
     setIsMuted(false)
     setIsVideoOff(false)
+    setHasRemoteVideo(false)
+    iceCandidateQueueRef.current = []
   }
 
   const toggleMute = () => {
@@ -421,8 +451,8 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
             )}
             
             {/* Overlay if remote camera is off but call is active */}
-            {callState === 'in-call' && !remoteVideoRef.current?.srcObject && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-500">
+            {callState === 'in-call' && !hasRemoteVideo && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-500 z-10">
                 <VideoOff size={48} className="mb-4 opacity-50" />
                 <p>Waiting for video feed...</p>
               </div>
