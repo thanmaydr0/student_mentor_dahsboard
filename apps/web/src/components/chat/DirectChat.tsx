@@ -106,6 +106,7 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
         window.incomingCallOffer = payload.sdp
       } else if (payload.type === 'call-answer') {
         if (peerConnectionRef.current) {
+          setCallState('in-call')
           await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(payload.sdp))
           iceCandidateQueueRef.current.forEach(async (candidate) => {
             try {
@@ -148,7 +149,27 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
 
   // 3. WebRTC Methods
   const initPeerConnection = async (withVideo: boolean) => {
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:openrelay.metered.ca:80' },
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
+      ]
+    })
     peerConnectionRef.current = pc
 
     pc.onicecandidate = (event) => {
