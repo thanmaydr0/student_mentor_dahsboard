@@ -4,6 +4,7 @@ import TopBar from './TopBar'
 import { useTheme } from '../../context/ThemeContext'
 import LightRays from '../ui/LightRays'
 import GlobalCallManager from '../chat/GlobalCallManager'
+import CareerAssistantWidget from '../career/CareerAssistantWidget'
 
 interface AppShellProps {
   role: 'student' | 'mentor'
@@ -74,6 +75,7 @@ export default function AppShell({ role, children }: AppShellProps) {
         </div>
       </div>
       <GlobalCallManager />
+      {role === 'student' && <CareerAssistantWidget />}
     </div>
   )
 }

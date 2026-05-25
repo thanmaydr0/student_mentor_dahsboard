@@ -24,6 +24,7 @@ const ParentCommsPage = lazy(() => import('./pages/mentor/ParentCommsPage'))
 const ResourceLibraryPage = lazy(() => import('./pages/student/ResourceLibraryPage'))
 const LeaderboardPage = lazy(() => import('./pages/student/LeaderboardPage'))
 const CalendarParserPage = lazy(() => import('./pages/student/CalendarParserPage'))
+const CareerAssistancePage = lazy(() => import('./pages/student/career/CareerAssistancePage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const ParentDashboard = lazy(() => import('./pages/parent/ParentDashboard'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
@@ -68,6 +69,7 @@ export default function App() {
                   <Route path="/student/library" element={<ResourceLibraryPage />} />
                   <Route path="/student/leaderboard" element={<LeaderboardPage />} />
                   <Route path="/student/calendar" element={<CalendarParserPage />} />
+                  <Route path="/student/career" element={<CareerAssistancePage />} />
                 </Route>
 
                 {/* Mentor routes */}

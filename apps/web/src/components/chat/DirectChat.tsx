@@ -43,6 +43,7 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
   const iceCandidateQueueRef = useRef<any[]>([])
+  const localIceCandidatesRef = useRef<any[]>([])
   const localStreamRef = useRef<MediaStream | null>(null)
   
   // Media element refs
@@ -126,13 +127,19 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
         if (peerConnectionRef.current) {
           setCallState('in-call')
           await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(payload.sdp))
-          iceCandidateQueueRef.current.forEach(async (candidate) => {
+          
+          // Re-transmit caller's ICE candidates to the receiver just in case they were lost while ringing globally
+          localIceCandidatesRef.current.forEach(candidate => {
+            sendSignal('ice-candidate', { candidate })
+          })
+
+          for (const candidate of iceCandidateQueueRef.current) {
             try {
               await peerConnectionRef.current?.addIceCandidate(new RTCIceCandidate(candidate))
             } catch (e) {
               console.error('Error adding queued ICE candidate', e)
             }
-          })
+          }
           iceCandidateQueueRef.current = []
         }
       } else if (payload.type === 'ice-candidate') {
@@ -170,7 +177,9 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
     const pc = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:openrelay.metered.ca:80' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' },
+        { urls: 'stun:global.stun.twilio.com:3478' },
         {
           urls: 'turn:openrelay.metered.ca:80',
           username: 'openrelayproject',
@@ -191,15 +200,19 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
     peerConnectionRef.current = pc
 
     pc.onicecandidate = (event) => {
-      if (event.candidate) sendSignal('ice-candidate', { candidate: event.candidate })
+      if (event.candidate) {
+        localIceCandidatesRef.current.push(event.candidate)
+        sendSignal('ice-candidate', { candidate: event.candidate })
+      }
     }
 
     pc.ontrack = (event) => {
+      const stream = event.streams && event.streams[0] ? event.streams[0] : new MediaStream([event.track])
       if (event.track.kind === 'video' && remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0]
+        if (!remoteVideoRef.current.srcObject) remoteVideoRef.current.srcObject = stream
         setHasRemoteVideo(true)
       } else if (event.track.kind === 'audio' && remoteAudioRef.current) {
-        remoteAudioRef.current.srcObject = event.streams[0]
+        if (!remoteAudioRef.current.srcObject) remoteAudioRef.current.srcObject = stream
       }
     }
 
@@ -222,6 +235,8 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
   const startCall = async (withVideo: boolean) => {
     setIsVideoCall(withVideo)
     setCallState('calling')
+    localIceCandidatesRef.current = []
+    iceCandidateQueueRef.current = []
     try {
       const pc = await initPeerConnection(withVideo)
       const offer = await pc.createOffer()
@@ -261,13 +276,13 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
       if (offer) {
         await pc.setRemoteDescription(new RTCSessionDescription(offer))
         
-        iceCandidateQueueRef.current.forEach(async (candidate) => {
+        for (const candidate of iceCandidateQueueRef.current) {
           try {
             await pc.addIceCandidate(new RTCIceCandidate(candidate))
           } catch (e) {
             console.error('Error adding queued ICE candidate on accept', e)
           }
-        })
+        }
         iceCandidateQueueRef.current = []
 
         const answer = await pc.createAnswer()
@@ -298,6 +313,7 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
     setIsVideoOff(false)
     setHasRemoteVideo(false)
     iceCandidateQueueRef.current = []
+    localIceCandidatesRef.current = []
   }
 
   const toggleMute = () => {
