@@ -238,7 +238,22 @@ export default function ReportGenerator({ studentId, isOpen, onClose }: ReportGe
   }
 
   const handleShare = async () => {
-    toast('Notification sent securely to student portal!', { icon: '📩' })
+    if (!reportData?.report) return toast.error('No report available to share.')
+    
+    toast.loading('Sending notification...', { id: 'share' })
+    try {
+      const { error } = await supabase.rpc('send_mentor_notification', {
+        p_student_id: studentId,
+        p_title: `New Report: ${reportData.report.report_title}`,
+        p_body: `Your mentor has generated a new ${selectedType} report for you. Status: ${reportData.report.overall_status}.`,
+        p_type: 'info'
+      })
+
+      if (error) throw error
+      toast.success('Notification sent securely to student portal!', { id: 'share', icon: '📩' })
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send notification', { id: 'share' })
+    }
   }
 
   if (!isOpen) return null
