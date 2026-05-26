@@ -9,5 +9,8 @@ export default defineConfig({
   },
   build: {
     minify: false,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    }
   },
 })
