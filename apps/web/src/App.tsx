@@ -27,6 +27,7 @@ const ResourceLibraryPage = lazy(() => import('./pages/student/ResourceLibraryPa
 const LeaderboardPage = lazy(() => import('./pages/student/LeaderboardPage'))
 const CalendarParserPage = lazy(() => import('./pages/student/CalendarParserPage'))
 const CareerAssistancePage = lazy(() => import('./pages/student/career/CareerAssistancePage'))
+const UnstopMatchesPage = lazy(() => import('./pages/student/career/UnstopMatchesPage'))
 const FeePaymentPage = lazy(() => import('./pages/student/FeePaymentPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const ParentDashboard = lazy(() => import('./pages/parent/ParentDashboard'))
@@ -77,6 +78,7 @@ export default function App() {
                   <Route path="/student/leaderboard" element={<LeaderboardPage />} />
                   <Route path="/student/calendar" element={<CalendarParserPage />} />
                   <Route path="/student/career" element={<CareerAssistancePage />} />
+                  <Route path="/student/unstop-matches" element={<UnstopMatchesPage />} />
                   <Route path="/student/fees" element={<FeePaymentPage />} />
                 </Route>
 

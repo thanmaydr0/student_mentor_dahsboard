@@ -23,7 +23,8 @@ import {
   Target,
   CreditCard,
   Receipt,
-  ScanSearch
+  ScanSearch,
+  Compass
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useUnreadCount } from '../../hooks/student/useNotifications'
@@ -47,6 +48,7 @@ const studentNav: NavItem[] = [
   { label: 'Dashboard', path: '/student/dashboard', icon: LayoutDashboard },
   { label: 'Leaderboard', path: '/student/leaderboard', icon: Trophy },
   { label: 'Career Assistance', path: '/student/career', icon: Briefcase },
+  { label: 'Unstop Matches', path: '/student/unstop-matches', icon: Compass },
   { label: 'Calendar AI', path: '/student/calendar', icon: CalendarDays },
   { label: 'Timetable', path: '/student/timetable', icon: Calendar },
   { label: 'Fee Payments', path: '/student/fees', icon: CreditCard },
