@@ -7,10 +7,14 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom'],
   },
+  optimizeDeps: {
+    include: ['recharts', 'recharts-scale'],
+  },
   build: {
     minify: false,
     commonjsOptions: {
+      include: [/recharts/, /node_modules/],
       transformMixedEsModules: true,
-    }
+    },
   },
 })
