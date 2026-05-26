@@ -27,6 +27,10 @@ const CalendarParserPage = lazy(() => import('./pages/student/CalendarParserPage
 const CareerAssistancePage = lazy(() => import('./pages/student/career/CareerAssistancePage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const ParentDashboard = lazy(() => import('./pages/parent/ParentDashboard'))
+const AcademicGPSPage = lazy(() => import('./pages/parent/AcademicGPSPage'))
+const CareerRadarPage = lazy(() => import('./pages/parent/CareerRadarPage'))
+const MentorConnectPage = lazy(() => import('./pages/parent/MentorConnectPage'))
+const SmartDeadlinesPage = lazy(() => import('./pages/parent/SmartDeadlinesPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 const queryClient = new QueryClient({
@@ -93,6 +97,10 @@ export default function App() {
                 {/* Parent routes */}
                 <Route element={<ProtectedRoute role="parent" />}>
                   <Route path="/parent/dashboard" element={<ParentDashboard />} />
+                  <Route path="/parent/predictor" element={<AcademicGPSPage />} />
+                  <Route path="/parent/career-radar" element={<CareerRadarPage />} />
+                  <Route path="/parent/mentor-connect" element={<MentorConnectPage />} />
+                  <Route path="/parent/deadlines" element={<SmartDeadlinesPage />} />
                 </Route>
 
                 {/* 404 */}

@@ -18,7 +18,9 @@ import {
   MessageSquare,
   Briefcase,
   PenTool,
-  Video
+  Video,
+  TrendingUp,
+  Target
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useUnreadCount } from '../../hooks/student/useNotifications'
@@ -63,6 +65,10 @@ const mentorNav: NavItem[] = [
 
 const parentNav: NavItem[] = [
   { label: 'Dashboard', path: '/parent/dashboard', icon: LayoutDashboard },
+  { label: 'Academic GPS', path: '/parent/predictor', icon: TrendingUp },
+  { label: 'Career Radar', path: '/parent/career-radar', icon: Target },
+  { label: 'Mentor Connect', path: '/parent/mentor-connect', icon: MessageSquare },
+  { label: 'Deadlines', path: '/parent/deadlines', icon: CalendarDays },
   { label: 'Profile', path: '/profile', icon: UserCircle },
 ]
 
