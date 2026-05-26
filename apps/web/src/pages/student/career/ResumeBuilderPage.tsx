@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FileText, Save, Download, Mic, Plus, Trash2, ShieldCheck, ChevronDown, Briefcase, GraduationCap, LayoutPanelLeft, Upload, Sparkles } from 'lucide-react'
+import { FileText, Save, Download, Mic, Plus, Trash2, ShieldCheck, ChevronDown, Briefcase, GraduationCap, LayoutPanelLeft, Upload, Sparkles, FolderGit2, X, Phone, Mail, Wand2, Link as LinkIcon, Settings2, GripVertical, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../../lib/supabase'
 import * as pdfjsLib from 'pdfjs-dist'
@@ -9,37 +9,64 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 // Set up PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
-const STAGGER = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
-  }
+type Theme = 'executive' | 'modern' | 'creative'
+
+interface ResumeData {
+  name: string
+  email: string
+  phone: string
+  linkedin: string
+  github: string
+  summary: string
+  experience: { id: string, company: string, role: string, description: string, startDate: string, endDate: string }[]
+  education: { id: string, school: string, degree: string, year: string, gpa: string }[]
+  projects: { id: string, name: string, tech: string, description: string, link: string }[]
+  skills: string[]
 }
 
-const ITEM = {
-  hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
-}
+const generateId = () => Math.random().toString(36).substring(2, 9)
+
+const emptyExp = () => ({ id: generateId(), company: '', role: '', description: '', startDate: '', endDate: '' })
+const emptyEdu = () => ({ id: generateId(), school: '', degree: '', year: '', gpa: '' })
+const emptyProj = () => ({ id: generateId(), name: '', tech: '', description: '', link: '' })
 
 export default function ResumeBuilderPage() {
-  const [resumeData, setResumeData] = useState({
-    name: '',
-    email: '',
+  const [theme, setTheme] = useState<Theme>('modern')
+  const [resumeData, setResumeData] = useState<ResumeData>({
+    name: '', email: '', phone: '', linkedin: '', github: '',
     summary: '',
-    experience: [{ company: '', role: '', description: '' }],
-    education: [{ school: '', degree: '', year: '' }],
+    experience: [emptyExp()],
+    education: [emptyEdu()],
+    projects: [emptyProj()],
+    skills: [],
   })
   
+  const [newSkill, setNewSkill] = useState('')
   const [atsScore, setAtsScore] = useState<number | null>(null)
   const [tips, setTips] = useState<string[]>([])
   const [isScoring, setIsScoring] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
-  const [isImprovising, setIsImprovising] = useState(false)
   const [activeSection, setActiveSection] = useState<string>('personal')
+  const [enhancingIndex, setEnhancingIndex] = useState<number | null>(null)
+  
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Load from local storage on mount (convenience feature)
+  useEffect(() => {
+    const saved = localStorage.getItem('edupredict_resume')
+    if (saved) {
+      try {
+        setResumeData(JSON.parse(saved))
+      } catch (e) {}
+    }
+  }, [])
+
+  // Auto-save to local storage (convenience feature)
+  useEffect(() => {
+    localStorage.setItem('edupredict_resume', JSON.stringify(resumeData))
+  }, [resumeData])
+
+  // --- Handlers ---
   const handleImportClick = () => fileInputRef.current?.click()
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,116 +75,101 @@ export default function ResumeBuilderPage() {
     setIsImporting(true)
     try {
       let extractedText = ''
-      
       if (file.type === 'application/pdf') {
         const arrayBuffer = await file.arrayBuffer()
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-        let fullText = ''
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i)
           const textContent = await page.getTextContent()
-          const pageText = textContent.items.map((item: any) => item.str).join(' ')
-          fullText += pageText + '\n'
+          extractedText += textContent.items.map((item: any) => item.str).join(' ') + '\n'
         }
-        extractedText = fullText
       } else {
         extractedText = await file.text()
       }
-      if (!extractedText.trim()) {
-        const err: any = new Error("Could not extract text from file")
-        err.extractedText = ""
-        throw err
-      }
       
-      console.log('Extracted text length:', extractedText.length)
-
-      const { data, error } = await supabase.functions.invoke('parse-resume', {
-        body: { text: extractedText }
-      })
+      const { data, error } = await supabase.functions.invoke('parse-resume', { body: { text: extractedText } })
+      if (error || !data) throw new Error("Edge function error")
       
-      if (error || !data) {
-         const err: any = new Error("Edge function error")
-         err.extractedText = extractedText
-         throw err
-      }
-
-      console.log('Parsed data from edge function:', data)
-
-      setResumeData({
-        name: data.name || '',
-        email: data.email || '',
-        summary: data.summary || '',
-        experience: data.experience?.length ? data.experience : [{ company: '', role: '', description: '' }],
-        education: data.education?.length ? data.education : [{ school: '', degree: '', year: '' }],
-      })
-      toast.success('Resume imported successfully!')
-    } catch (err: any) {
-      console.error('Resume Parse Error:', err)
-      
-      // Fallback: If edge function fails (e.g. not deployed), dump text into summary so user doesn't lose it
-      const fallbackText = file?.type === 'application/pdf' ? 'Raw PDF Text Extracted (AI Formatting Unavailable): \n\n' : ''
       setResumeData(prev => ({
         ...prev,
-        summary: prev.summary + '\n' + fallbackText + (err.extractedText || 'Could not parse text correctly.')
+        name: data.name || prev.name,
+        email: data.email || prev.email,
+        summary: data.summary || prev.summary,
+        experience: data.experience?.length ? data.experience.map((e: any) => ({ ...e, id: generateId() })) : prev.experience,
+        education: data.education?.length ? data.education.map((e: any) => ({ ...e, id: generateId() })) : prev.education,
       }))
-      
-      toast.error('AI formatting failed. Raw text dumped into summary.')
+      toast.success('Resume imported successfully!')
+    } catch (err) {
+      toast.error('AI formatting failed.')
     } finally {
       setIsImporting(false)
       if (e.target) e.target.value = ''
     }
   }
 
-  const handleImprovise = async () => {
-    setIsImprovising(true)
-    try {
-      // Simulate AI rewriting
-      await new Promise(r => setTimeout(r, 2500))
-      setResumeData(prev => ({
-        ...prev,
-        summary: prev.summary 
-          ? `Results-driven professional with a proven track record of delivering scalable solutions. ${prev.summary}`
-          : 'Innovative and results-driven professional with a proven track record of designing and implementing scalable systems.',
-        experience: prev.experience.map(exp => ({
-          ...exp,
-          description: exp.description 
-            ? `${exp.description} Spearheaded cross-functional initiatives resulting in a 40% performance improvement.`
-            : 'Engineered robust solutions and optimized legacy systems, improving overall performance by 40%.'
-        }))
-      }))
-      toast.success('Resume professionally enhanced!')
-    } catch (err) {
-      toast.error('Failed to enhance resume')
-    } finally {
-      setIsImprovising(false)
-    }
-  }
-
   const handleScoreResume = async () => {
     setIsScoring(true)
     try {
-      const { data, error } = await supabase.functions.invoke('ats-score', {
-        body: { resumeData }
-      })
+      const { data, error } = await supabase.functions.invoke('ats-score', { body: { resumeData } })
       if (error) throw error
       setAtsScore(data.score)
       setTips(data.tips)
       toast.success('ATS Score Calculated!')
-    } catch (err: any) {
+    } catch (err) {
       toast.error('Failed to calculate ATS score')
     } finally {
       setIsScoring(false)
     }
   }
 
-  const handleSave = () => toast.success('Resume synchronized.')
-  const handlePrint = () => window.print()
+  const handleEnhanceBullet = async (index: number) => {
+    const exp = resumeData.experience[index]
+    if (!exp.description) return toast.error("Write some draft text first!")
+    
+    setEnhancingIndex(index)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enhance-resume-bullet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ text: exp.description, role: exp.role, company: exp.company })
+      })
+      const result = await res.json()
+      if (!res.ok || result.error) throw new Error(result.error)
+      
+      const ne = [...resumeData.experience]
+      ne[index].description = result.enhancedText
+      setResumeData({ ...resumeData, experience: ne })
+      toast.success("Bullet point enhanced!")
+    } catch (err) {
+      toast.error("Failed to enhance bullet point.")
+    } finally {
+      setEnhancingIndex(null)
+    }
+  }
 
-  const addExp = () => setResumeData(p => ({ ...p, experience: [...p.experience, { company: '', role: '', description: '' }] }))
+  const handlePrint = () => {
+    window.print()
+  }
+
+  // --- Array Modifiers ---
+  const addExp = () => setResumeData(p => ({ ...p, experience: [...p.experience, emptyExp()] }))
   const rmExp = (i: number) => setResumeData(p => { const ne = [...p.experience]; ne.splice(i, 1); return { ...p, experience: ne } })
-  
-  const addEdu = () => setResumeData(p => ({ ...p, education: [...p.education, { school: '', degree: '', year: '' }] }))
+  const addEdu = () => setResumeData(p => ({ ...p, education: [...p.education, emptyEdu()] }))
   const rmEdu = (i: number) => setResumeData(p => { const ne = [...p.education]; ne.splice(i, 1); return { ...p, education: ne } })
+  const addProj = () => setResumeData(p => ({ ...p, projects: [...p.projects, emptyProj()] }))
+  const rmProj = (i: number) => setResumeData(p => { const ne = [...p.projects]; ne.splice(i, 1); return { ...p, projects: ne } })
+  
+  const addSkill = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && newSkill.trim()) {
+      e.preventDefault()
+      if (!resumeData.skills.includes(newSkill.trim())) {
+        setResumeData(p => ({ ...p, skills: [...p.skills, newSkill.trim()] }))
+      }
+      setNewSkill('')
+    }
+  }
+  const rmSkill = (skill: string) => setResumeData(p => ({ ...p, skills: p.skills.filter(s => s !== skill) }))
 
   return (
     <div className="flex flex-col gap-6 h-full pb-10">
@@ -166,201 +178,277 @@ export default function ResumeBuilderPage() {
           body * { visibility: hidden; }
           #resume-canvas, #resume-canvas * { visibility: visible; }
           #resume-canvas {
-            position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px;
-            box-shadow: none !important; border: none !important; background: white !important; color: black !important;
+            position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0 !important;
+            box-shadow: none !important; border: none !important; 
           }
-          /* Force standard formatting for print */
-          .print-header { border-bottom: 2px solid black !important; }
-          .print-text { color: black !important; }
+          /* Ensure A4 size exactly on print */
+          @page { size: A4 portrait; margin: 0; }
+          
+          .theme-executive { font-family: 'Times New Roman', Times, serif !important; }
+          .theme-modern { font-family: 'Inter', sans-serif !important; }
+          .theme-creative { font-family: 'Outfit', sans-serif !important; }
+          
+          .print-black { color: black !important; }
+          .print-gray { color: #4b5563 !important; }
+          .print-accent { color: ${theme === 'executive' ? 'black' : theme === 'modern' ? '#0ea5e9' : '#f59e0b'} !important; }
         }
       `}</style>
 
-      {/* Control Bar */}
-      <motion.div variants={STAGGER} initial="hidden" animate="show" className="flex flex-wrap justify-end gap-3 print:hidden">
-        <input type="file" accept=".pdf,.doc,.docx" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+      {/* Modern Control Bar */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-[#12141a] p-4 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm print:hidden">
         
-        <motion.button variants={ITEM} onClick={handleImportClick} disabled={isImporting} className="flex items-center gap-2 px-6 py-2.5 bg-slate-100 dark:bg-[#1a1d24] hover:bg-slate-200 dark:hover:bg-[#1f232b] text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-300 shadow-sm border border-slate-200/50 dark:border-white/5 font-bold active:scale-95">
-          <Upload size={18} /> {isImporting ? 'Parsing...' : 'Import Resume'}
-        </motion.button>
-        
-        <motion.button variants={ITEM} onClick={handleImprovise} disabled={isImprovising} className="flex items-center gap-2 px-6 py-2.5 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/50 rounded-xl transition-all duration-300 shadow-sm border border-brand-200 dark:border-brand-500/20 font-bold active:scale-95">
-          <Sparkles size={18} className={isImprovising ? "animate-pulse" : ""} /> {isImprovising ? 'Enhancing...' : 'Improvise AI'}
-        </motion.button>
+        {/* Theme Selector - Elegant Pills */}
+        <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-black/40 rounded-xl overflow-hidden w-full md:w-auto">
+          {(['executive', 'modern', 'creative'] as Theme[]).map(t => (
+            <button
+              key={t}
+              onClick={() => setTheme(t)}
+              className={`flex-1 md:flex-none px-6 py-2.5 text-sm font-bold capitalize rounded-lg transition-all duration-300 ${
+                theme === t 
+                  ? 'bg-white dark:bg-[#252830] text-brand-700 dark:text-cyan-400 shadow-sm border border-slate-200/50 dark:border-white/5' 
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-white/5 border border-transparent'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
 
-        <motion.button variants={ITEM} onClick={handleScoreResume} disabled={isScoring} className="flex items-center gap-2 px-6 py-2.5 bg-white/70 dark:bg-[#1a1d24]/70 backdrop-blur-xl hover:bg-white dark:hover:bg-[#1f232b] text-brand-700 dark:text-cyan-400 rounded-xl transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(34,211,238,0.15)] border border-slate-200/50 dark:border-cyan-500/20 font-bold active:scale-95">
-          <ShieldCheck size={18} /> {isScoring ? 'Analyzing...' : 'Scan Resume'}
-        </motion.button>
-        <motion.button variants={ITEM} onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 dark:bg-cyan-600 text-white hover:bg-brand-700 dark:hover:bg-cyan-500 rounded-xl transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(37,99,235,0.4)] dark:shadow-[0_0_20px_rgba(34,211,238,0.3)] border border-transparent font-bold active:scale-95">
-          <Save size={18} /> Sync
-        </motion.button>
-        <motion.button variants={ITEM} onClick={handlePrint} className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-black dark:hover:bg-slate-200 rounded-xl transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.4)] dark:shadow-[0_0_20px_rgba(255,255,255,0.2)] font-bold active:scale-95">
-          <Download size={18} /> Export PDF
-        </motion.button>
-      </motion.div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:block">
-        
-        {/* Editor Side */}
-        <motion.div variants={STAGGER} initial="hidden" animate="show" className="flex flex-col gap-5 print:hidden h-[calc(100vh-250px)] overflow-y-auto pr-3 custom-scrollbar">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
+          <input type="file" accept=".pdf,.doc,.docx" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
           
-          <motion.div variants={ITEM} className="bg-white/70 dark:bg-[#12141a]/80 backdrop-blur-2xl rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-xl overflow-hidden transition-all duration-300">
-             <button onClick={() => setActiveSection(activeSection === 'personal' ? '' : 'personal')} className="w-full flex items-center justify-between p-6 focus:outline-none">
-                <span className="font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white text-lg"><LayoutPanelLeft size={22} className="text-brand-600 dark:text-cyan-500"/> Personal & Summary</span>
-                <ChevronDown size={20} className={`text-slate-500 transition-transform duration-500 ${activeSection === 'personal' ? 'rotate-180' : ''}`} />
-             </button>
-             <AnimatePresence>
-               {activeSection === 'personal' && (
-                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="overflow-hidden">
-                    <div className="p-6 pt-0 space-y-5">
-                      <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent mb-6" />
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2 sm:col-span-1">
-                          <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2 block pl-1">Full Name</label>
-                          <input type="text" value={resumeData.name} onChange={e => setResumeData({...resumeData, name: e.target.value})} className="w-full rounded-xl bg-slate-50 dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white px-4 py-3 outline-none focus:border-brand-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-cyan-500/20 transition-all font-medium" placeholder="John Doe" />
-                        </div>
-                        <div className="col-span-2 sm:col-span-1">
-                          <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2 block pl-1">Email</label>
-                          <input type="email" value={resumeData.email} onChange={e => setResumeData({...resumeData, email: e.target.value})} className="w-full rounded-xl bg-slate-50 dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white px-4 py-3 outline-none focus:border-brand-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-cyan-500/20 transition-all font-medium" placeholder="john@example.com" />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-2 pl-1">
-                          <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Summary</label>
-                          <button className="text-xs font-bold text-brand-600 dark:text-cyan-400 flex items-center gap-1 hover:opacity-80 transition" onClick={() => toast('Voice active')}><Mic size={14}/> Dictate</button>
-                        </div>
-                        <textarea rows={4} value={resumeData.summary} onChange={e => setResumeData({...resumeData, summary: e.target.value})} className="w-full rounded-xl bg-slate-50 dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white px-4 py-3 outline-none focus:border-brand-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-cyan-500/20 transition-all font-medium resize-none leading-relaxed" placeholder="Brief professional overview..." />
-                      </div>
-                    </div>
-                 </motion.div>
-               )}
-             </AnimatePresence>
-          </motion.div>
+          <button onClick={handleImportClick} disabled={isImporting} className="flex items-center gap-2 px-5 py-2.5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl transition-all font-semibold text-sm whitespace-nowrap">
+            <Upload size={16} /> {isImporting ? 'Parsing...' : 'Import'}
+          </button>
 
-          {/* Experience Section */}
-          <motion.div variants={ITEM} className="bg-white/70 dark:bg-[#12141a]/80 backdrop-blur-2xl rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-xl overflow-hidden transition-all duration-300">
-             <button onClick={() => setActiveSection(activeSection === 'experience' ? '' : 'experience')} className="w-full flex items-center justify-between p-6 focus:outline-none">
-                <span className="font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white text-lg"><Briefcase size={22} className="text-brand-600 dark:text-cyan-500"/> Work Experience</span>
-                <ChevronDown size={20} className={`text-slate-500 transition-transform duration-500 ${activeSection === 'experience' ? 'rotate-180' : ''}`} />
-             </button>
-             <AnimatePresence>
-               {activeSection === 'experience' && (
-                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="overflow-hidden">
-                    <div className="p-6 pt-0 space-y-6">
-                      <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent mb-6" />
-                      {resumeData.experience.map((exp, i) => (
-                        <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-black/30 relative group shadow-sm">
-                           <button onClick={() => rmExp(i)} className="absolute top-4 right-4 p-2 text-slate-400 bg-white dark:bg-[#1a1d24] rounded-full shadow-sm hover:text-red-500 hover:shadow-md transition-all scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"><Trash2 size={14}/></button>
-                           <input type="text" placeholder="Company Name" className="w-full bg-transparent outline-none font-black text-lg text-slate-900 dark:text-white mb-1 placeholder-slate-300 dark:placeholder-slate-700 transition" value={exp.company} onChange={e => {
-                             const ne = [...resumeData.experience]; ne[i].company = e.target.value; setResumeData({...resumeData, experience: ne})
-                           }} />
-                           <input type="text" placeholder="Job Title" className="w-full bg-transparent outline-none font-semibold text-sm text-brand-600 dark:text-cyan-500 mb-3 placeholder-slate-300 dark:placeholder-slate-700 transition" value={exp.role} onChange={e => {
-                             const ne = [...resumeData.experience]; ne[i].role = e.target.value; setResumeData({...resumeData, experience: ne})
-                           }} />
-                           <textarea rows={3} placeholder="Key achievements and duties..." className="w-full rounded-xl bg-white dark:bg-[#0a0a0c] border border-slate-200/50 dark:border-white/5 text-slate-700 dark:text-slate-300 px-4 py-3 outline-none focus:border-brand-500 dark:focus:border-cyan-500 transition-all font-medium resize-none text-sm leading-relaxed shadow-inner" value={exp.description} onChange={e => {
-                             const ne = [...resumeData.experience]; ne[i].description = e.target.value; setResumeData({...resumeData, experience: ne})
-                           }} />
-                        </motion.div>
-                      ))}
-                      <button onClick={addExp} className="w-full py-4 border border-dashed border-slate-300 dark:border-white/10 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-cyan-400 hover:border-brand-500 dark:hover:border-cyan-500 hover:bg-brand-50/50 dark:hover:bg-cyan-500/5 transition-all flex items-center justify-center gap-2 font-black text-sm">
-                        <Plus size={18} /> Add Experience
+          <button onClick={handleScoreResume} disabled={isScoring} className="flex items-center gap-2 px-5 py-2.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-xl transition-all font-semibold text-sm whitespace-nowrap">
+            <ShieldCheck size={16} /> {isScoring ? 'Scanning...' : 'ATS Scan'}
+          </button>
+          
+          <button onClick={handlePrint} className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 dark:bg-cyan-600 text-white hover:bg-brand-700 dark:hover:bg-cyan-500 rounded-xl transition-all font-bold text-sm shadow-sm whitespace-nowrap ml-auto">
+            <Download size={16} /> Download PDF
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8 print:block">
+        
+        {/* Editor Side - Refined and robust */}
+        <div className="w-full lg:w-[45%] flex flex-col gap-4 print:hidden h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
+          
+          <SectionAccordion title="Personal Details" icon={<LayoutPanelLeft size={18}/>} activeSection={activeSection} setActiveSection={setActiveSection} sectionId="personal">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="Full Name" value={resumeData.name} onChange={v => setResumeData({...resumeData, name: v})} placeholder="John Doe" />
+                <Input label="Email Address" type="email" value={resumeData.email} onChange={v => setResumeData({...resumeData, email: v})} placeholder="john@example.com" />
+                <Input label="Phone Number" value={resumeData.phone} onChange={v => setResumeData({...resumeData, phone: v})} placeholder="+1 234 567 8900" />
+                <Input label="LinkedIn (Username only)" value={resumeData.linkedin} onChange={v => setResumeData({...resumeData, linkedin: v})} placeholder="johndoe" />
+                <Input label="GitHub (Username only)" value={resumeData.github} onChange={v => setResumeData({...resumeData, github: v})} placeholder="johndoe" />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-2 block">Professional Summary</label>
+                <textarea rows={4} value={resumeData.summary} onChange={e => setResumeData({...resumeData, summary: e.target.value})} className="w-full rounded-xl bg-slate-50 dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white px-4 py-3 outline-none focus:border-brand-500 transition-all text-sm resize-none" placeholder="A brief, impactful overview of your career and goals..." />
+              </div>
+            </div>
+          </SectionAccordion>
+
+          <SectionAccordion title="Skills" icon={<Sparkles size={18}/>} activeSection={activeSection} setActiveSection={setActiveSection} sectionId="skills">
+            <div className="space-y-4">
+              <input type="text" value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={addSkill} placeholder="Type a skill (e.g. React) and press Enter..." className="w-full rounded-xl bg-slate-50 dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white px-4 py-3 outline-none focus:border-brand-500 transition-all font-medium text-sm" />
+              
+              {resumeData.skills.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-4 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-xl">
+                  {resumeData.skills.map((skill) => (
+                    <span key={skill} className="flex items-center gap-1.5 bg-white dark:bg-[#1a1d24] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm">
+                      {skill}
+                      <button onClick={() => rmSkill(skill)} className="text-slate-400 hover:text-red-500 transition-colors"><X size={14}/></button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </SectionAccordion>
+
+          <SectionAccordion title="Experience" icon={<Briefcase size={18}/>} activeSection={activeSection} setActiveSection={setActiveSection} sectionId="experience">
+            <div className="space-y-6">
+              {resumeData.experience.map((exp, i) => (
+                <div key={exp.id} className="p-5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 relative group">
+                  <div className="absolute top-5 right-5 flex gap-2">
+                    <button onClick={() => rmExp(i)} className="p-2 text-slate-400 bg-white dark:bg-[#1a1d24] border border-slate-200 dark:border-white/10 rounded-lg hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pr-12">
+                    <Input label="Company Name" value={exp.company} onChange={v => { const ne = [...resumeData.experience]; ne[i].company = v; setResumeData({...resumeData, experience: ne}) }} />
+                    <Input label="Job Title" value={exp.role} onChange={v => { const ne = [...resumeData.experience]; ne[i].role = v; setResumeData({...resumeData, experience: ne}) }} />
+                    <Input label="Start Date" placeholder="e.g. Jun 2021" value={exp.startDate} onChange={v => { const ne = [...resumeData.experience]; ne[i].startDate = v; setResumeData({...resumeData, experience: ne}) }} />
+                    <Input label="End Date" placeholder="e.g. Present" value={exp.endDate} onChange={v => { const ne = [...resumeData.experience]; ne[i].endDate = v; setResumeData({...resumeData, experience: ne}) }} />
+                  </div>
+                  
+                  <div className="relative mt-2">
+                    <div className="flex justify-between items-end mb-2">
+                      <label className="text-[11px] font-bold tracking-widest text-slate-500 uppercase block">Description / Achievements</label>
+                      <button onClick={() => handleEnhanceBullet(i)} disabled={enhancingIndex === i || !exp.description} className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50">
+                        <Wand2 size={12}/> {enhancingIndex === i ? 'Enhancing...' : 'Magic Rewrite'}
                       </button>
                     </div>
-                 </motion.div>
-               )}
-             </AnimatePresence>
-          </motion.div>
-          
-          {/* Education Section */}
-          <motion.div variants={ITEM} className="bg-white/70 dark:bg-[#12141a]/80 backdrop-blur-2xl rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-xl overflow-hidden transition-all duration-300">
-             <button onClick={() => setActiveSection(activeSection === 'education' ? '' : 'education')} className="w-full flex items-center justify-between p-6 focus:outline-none">
-                <span className="font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white text-lg"><GraduationCap size={22} className="text-brand-600 dark:text-cyan-500"/> Education</span>
-                <ChevronDown size={20} className={`text-slate-500 transition-transform duration-500 ${activeSection === 'education' ? 'rotate-180' : ''}`} />
-             </button>
-             <AnimatePresence>
-               {activeSection === 'education' && (
-                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="overflow-hidden">
-                    <div className="p-6 pt-0 space-y-6">
-                      <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent mb-6" />
-                      {resumeData.education.map((edu, i) => (
-                        <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-black/30 relative group shadow-sm flex flex-col gap-2">
-                           <button onClick={() => rmEdu(i)} className="absolute top-4 right-4 p-2 text-slate-400 bg-white dark:bg-[#1a1d24] rounded-full shadow-sm hover:text-red-500 hover:shadow-md transition-all scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"><Trash2 size={14}/></button>
-                           <input type="text" placeholder="Institution" className="w-full bg-transparent outline-none font-black text-lg text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 transition" value={edu.school} onChange={e => {
-                             const ne = [...resumeData.education]; ne[i].school = e.target.value; setResumeData({...resumeData, education: ne})
-                           }} />
-                           <div className="flex gap-4">
-                             <input type="text" placeholder="Degree" className="flex-1 bg-transparent outline-none font-semibold text-sm text-brand-600 dark:text-cyan-500 placeholder-slate-300 dark:placeholder-slate-700 transition" value={edu.degree} onChange={e => {
-                               const ne = [...resumeData.education]; ne[i].degree = e.target.value; setResumeData({...resumeData, education: ne})
-                             }} />
-                             <input type="text" placeholder="Year" className="w-20 bg-transparent outline-none font-semibold text-sm text-slate-500 dark:text-slate-400 placeholder-slate-300 dark:placeholder-slate-700 text-right transition" value={edu.year} onChange={e => {
-                               const ne = [...resumeData.education]; ne[i].year = e.target.value; setResumeData({...resumeData, education: ne})
-                             }} />
-                           </div>
-                        </motion.div>
-                      ))}
-                      <button onClick={addEdu} className="w-full py-4 border border-dashed border-slate-300 dark:border-white/10 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-cyan-400 hover:border-brand-500 dark:hover:border-cyan-500 hover:bg-brand-50/50 dark:hover:bg-cyan-500/5 transition-all flex items-center justify-center gap-2 font-black text-sm">
-                        <Plus size={18} /> Add Education
-                      </button>
+                    <textarea rows={4} placeholder="Describe achievements (1 per line). Start with action verbs..." value={exp.description} onChange={e => { const ne = [...resumeData.experience]; ne[i].description = e.target.value; setResumeData({...resumeData, experience: ne}) }} className="w-full rounded-xl bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/10 px-4 py-3 outline-none focus:border-brand-500 transition-all text-sm resize-none" />
+                  </div>
+                </div>
+              ))}
+              <AddButton onClick={addExp} label="Add Experience" />
+            </div>
+          </SectionAccordion>
+
+          <SectionAccordion title="Projects" icon={<FolderGit2 size={18}/>} activeSection={activeSection} setActiveSection={setActiveSection} sectionId="projects">
+            <div className="space-y-6">
+              {resumeData.projects.map((proj, i) => (
+                <div key={proj.id} className="p-5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 relative group">
+                  <button onClick={() => rmProj(i)} className="absolute top-5 right-5 p-2 text-slate-400 bg-white dark:bg-[#1a1d24] border border-slate-200 dark:border-white/10 rounded-lg hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                  
+                  <div className="grid grid-cols-1 gap-4 mb-4 pr-12">
+                    <Input label="Project Name" value={proj.name} onChange={v => { const ne = [...resumeData.projects]; ne[i].name = v; setResumeData({...resumeData, projects: ne}) }} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input label="Tech Stack" placeholder="e.g. React, Node.js" value={proj.tech} onChange={v => { const ne = [...resumeData.projects]; ne[i].tech = v; setResumeData({...resumeData, projects: ne}) }} />
+                      <Input label="Link" placeholder="https://..." value={proj.link} onChange={v => { const ne = [...resumeData.projects]; ne[i].link = v; setResumeData({...resumeData, projects: ne}) }} />
                     </div>
-                 </motion.div>
-               )}
-             </AnimatePresence>
-          </motion.div>
+                  </div>
+                  
+                  <label className="text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-2 block">Project Description</label>
+                  <textarea rows={2} placeholder="Brief description..." value={proj.description} onChange={e => { const ne = [...resumeData.projects]; ne[i].description = e.target.value; setResumeData({...resumeData, projects: ne}) }} className="w-full rounded-xl bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/10 px-4 py-3 outline-none focus:border-brand-500 transition-all text-sm resize-none" />
+                </div>
+              ))}
+              <AddButton onClick={addProj} label="Add Project" />
+            </div>
+          </SectionAccordion>
 
-        </motion.div>
+          <SectionAccordion title="Education" icon={<GraduationCap size={18}/>} activeSection={activeSection} setActiveSection={setActiveSection} sectionId="education">
+            <div className="space-y-6">
+              {resumeData.education.map((edu, i) => (
+                <div key={edu.id} className="p-5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 relative group">
+                  <button onClick={() => rmEdu(i)} className="absolute top-5 right-5 p-2 text-slate-400 bg-white dark:bg-[#1a1d24] border border-slate-200 dark:border-white/10 rounded-lg hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-12">
+                    <div className="col-span-1 md:col-span-2"><Input label="School/University" value={edu.school} onChange={v => { const ne = [...resumeData.education]; ne[i].school = v; setResumeData({...resumeData, education: ne}) }} /></div>
+                    <Input label="Degree/Major" value={edu.degree} onChange={v => { const ne = [...resumeData.education]; ne[i].degree = v; setResumeData({...resumeData, education: ne}) }} />
+                    <Input label="Year/Range" placeholder="e.g. 2020 - 2024" value={edu.year} onChange={v => { const ne = [...resumeData.education]; ne[i].year = v; setResumeData({...resumeData, education: ne}) }} />
+                    <div className="col-span-1 md:col-span-2"><Input label="GPA (Optional)" placeholder="e.g. 3.8/4.0" value={edu.gpa} onChange={v => { const ne = [...resumeData.education]; ne[i].gpa = v; setResumeData({...resumeData, education: ne}) }} /></div>
+                  </div>
+                </div>
+              ))}
+              <AddButton onClick={addEdu} label="Add Education" />
+            </div>
+          </SectionAccordion>
+        </div>
 
-        {/* Live Preview Side (Glowing Wireframe in Dark, Paper in Light) */}
-        <motion.div variants={STAGGER} initial="hidden" animate="show" className="flex flex-col gap-6 print:block relative">
+        {/* Live Preview Side */}
+        <div className="w-full lg:w-[55%] flex flex-col items-center print:block relative">
           
           <AnimatePresence>
             {atsScore !== null && (
-              <motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute -top-6 right-0 z-20 w-80 p-5 rounded-2xl bg-white/90 dark:bg-[#12141a]/95 backdrop-blur-2xl border border-emerald-500/30 shadow-[0_10px_40px_-10px_rgba(16,185,129,0.3)] dark:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] print:hidden">
-                <div className="flex items-center gap-4 border-b border-slate-100 dark:border-white/5 pb-4 mb-4">
-                  <div className="w-14 h-14 rounded-full border-[3px] border-emerald-500 flex items-center justify-center font-black text-2xl text-emerald-600 dark:text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]">
-                    {atsScore}
-                  </div>
-                  <div>
-                    <h3 className="font-black text-slate-900 dark:text-white tracking-tight">ATS Score</h3>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-0.5">Algorithm Passed</p>
-                  </div>
+              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="w-full max-w-[21cm] mb-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/30 flex items-start gap-4 print:hidden">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center font-black text-xl text-emerald-600 dark:text-emerald-400 shrink-0">
+                  {atsScore}
                 </div>
-                {tips.length > 0 && (
-                  <ul className="space-y-2 text-xs font-medium text-slate-600 dark:text-slate-400">
-                    {tips.map((t, i) => <li key={i} className="flex items-start gap-2"><span className="text-emerald-500">▹</span> {t}</li>)}
-                  </ul>
-                )}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-bold text-emerald-900 dark:text-emerald-400">ATS Score</h3>
+                    <button onClick={() => setAtsScore(null)} className="text-emerald-600/50 hover:text-emerald-600"><X size={16}/></button>
+                  </div>
+                  {tips.length > 0 && (
+                    <ul className="space-y-1 mt-2">
+                      {tips.map((t, i) => <li key={i} className="text-xs font-medium text-emerald-800 dark:text-emerald-300 flex items-start gap-1.5"><CheckCircle2 size={14} className="shrink-0 mt-0.5 text-emerald-500"/> {t}</li>)}
+                    </ul>
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <motion.div variants={ITEM} className="w-full flex justify-center perspective-[1000px] print:p-0">
-             {/* The Canvas */}
-             <div id="resume-canvas" className="w-full max-w-[21cm] min-h-[29.7cm] p-12 transition-all duration-500 bg-white text-slate-900 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:bg-[#0a0a0c] dark:text-slate-300 dark:border dark:border-cyan-500/20 dark:shadow-[0_0_50px_-12px_rgba(34,211,238,0.15)] rounded-md print:shadow-none print:min-h-0 print:border-none print:p-0 print:bg-white print:text-black">
+          <div className="w-full flex justify-center print:p-0">
+             {/* The Interactive Resume Canvas - A4 Scaled */}
+             <div 
+               id="resume-canvas" 
+               className={`w-full max-w-[21cm] aspect-[1/1.4142] p-[1.5cm] bg-white shadow-2xl rounded-md transition-all duration-300 print:shadow-none print:w-[21cm] print:h-[29.7cm] print:p-[1cm] overflow-hidden
+                 ${theme === 'executive' ? 'font-serif text-slate-900' : ''}
+                 ${theme === 'modern' ? 'font-sans text-slate-800' : ''}
+                 ${theme === 'creative' ? 'font-sans text-slate-900' : ''}
+               `}
+             >
                 
-                <div className="text-center pb-8 mb-8 border-b-2 border-slate-900 dark:border-cyan-500/30 print-header">
-                   <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white print-text">{resumeData.name || 'Your Name'}</h1>
-                   <p className="mt-2 font-bold tracking-widest text-brand-600 dark:text-cyan-400 text-sm print-text">{resumeData.email || 'email@example.com'}</p>
-                </div>
+                {theme === 'executive' && (
+                  <div className="text-center mb-6 border-b-[3px] border-black pb-4">
+                     <h1 className="text-[28px] font-bold uppercase tracking-widest text-black print-black mb-2 leading-none">{resumeData.name || 'FIRST LAST'}</h1>
+                     <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[12px] font-medium text-gray-700 print-gray">
+                        {resumeData.email && <span>{resumeData.email}</span>}
+                        {resumeData.phone && <span>• {resumeData.phone}</span>}
+                        {resumeData.linkedin && <span>• linkedin.com/in/{resumeData.linkedin}</span>}
+                        {resumeData.github && <span>• github.com/{resumeData.github}</span>}
+                     </div>
+                  </div>
+                )}
+
+                {theme === 'modern' && (
+                  <div className="mb-6 border-b-2 border-sky-500/30 pb-4 flex justify-between items-end">
+                    <div>
+                      <h1 className="text-[32px] font-extrabold tracking-tight text-slate-900 print-black leading-none">{resumeData.name || 'Your Name'}</h1>
+                      <div className="flex flex-col gap-0.5 mt-2 text-[12px] font-medium text-slate-500 print-gray">
+                        {resumeData.email && <span className="flex items-center gap-1.5"><Mail size={12}/> {resumeData.email}</span>}
+                        {resumeData.phone && <span className="flex items-center gap-1.5"><Phone size={12}/> {resumeData.phone}</span>}
+                      </div>
+                    </div>
+                    <div className="text-right text-[12px] font-medium text-slate-500 flex flex-col gap-0.5 items-end print-gray">
+                        {resumeData.linkedin && <span className="flex items-center gap-1.5">{resumeData.linkedin} <LinkIcon size={12}/></span>}
+                        {resumeData.github && <span className="flex items-center gap-1.5">{resumeData.github} <LinkIcon size={12}/></span>}
+                    </div>
+                  </div>
+                )}
+
+                {theme === 'creative' && (
+                  <div className="mb-6 flex">
+                    <div className="w-1.5 h-[70px] bg-amber-500 mr-5 print-accent" />
+                    <div className="py-1">
+                      <h1 className="text-[36px] font-black tracking-tighter text-slate-900 print-black uppercase leading-none">{resumeData.name || 'NAME HERE'}</h1>
+                      <div className="flex flex-wrap gap-4 mt-2 text-[12px] font-bold text-amber-600 print-accent">
+                        {resumeData.email && <span>{resumeData.email}</span>}
+                        {resumeData.phone && <span>{resumeData.phone}</span>}
+                        {resumeData.linkedin && <span>in/{resumeData.linkedin}</span>}
+                        {resumeData.github && <span>gh/{resumeData.github}</span>}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 {resumeData.summary && (
-                  <div className="mb-8">
-                     <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-3">Professional Summary</h2>
-                     <p className="text-sm leading-loose font-medium print-text">{resumeData.summary}</p>
+                  <div className="mb-5">
+                     <SectionHeader title="Summary" theme={theme} />
+                     <p className="text-[12px] leading-relaxed text-gray-800 print-black">{resumeData.summary}</p>
                   </div>
                 )}
 
                 {resumeData.experience.some(e => e.company || e.role) && (
-                  <div className="mb-8">
-                     <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-4">Experience</h2>
-                     <div className="space-y-6">
-                       {resumeData.experience.map((exp, i) => (
+                  <div className="mb-5">
+                     <SectionHeader title="Experience" theme={theme} />
+                     <div className="space-y-3.5">
+                       {resumeData.experience.map((exp) => (
                          (exp.company || exp.role) ? (
-                           <div key={i} className="group relative">
-                             <div className="flex justify-between items-baseline mb-1">
-                               <h3 className="font-extrabold text-slate-900 dark:text-white text-base print-text">{exp.role || 'Job Title'}</h3>
-                               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Present</span>
+                           <div key={exp.id}>
+                             <div className="flex justify-between items-baseline mb-0.5">
+                               <h3 className={`text-[13px] font-bold ${theme === 'executive' ? 'text-black print-black' : 'text-slate-900 print-black'}`}>{exp.role || 'Job Title'}</h3>
+                               <span className={`text-[11px] font-semibold ${theme === 'executive' ? 'text-gray-600' : 'text-slate-500'} print-gray whitespace-nowrap`}>
+                                 {exp.startDate} {exp.startDate && exp.endDate ? '–' : ''} {exp.endDate}
+                               </span>
                              </div>
-                             <p className="text-sm font-bold text-brand-600 dark:text-cyan-500 mb-2 print-text">{exp.company || 'Company Name'}</p>
-                             <p className="text-sm leading-relaxed font-medium whitespace-pre-wrap print-text text-slate-700 dark:text-slate-400">{exp.description || 'Description of duties and achievements...'}</p>
+                             <p className={`text-[12px] font-semibold mb-1.5 ${theme === 'modern' ? 'text-sky-600 print-accent' : theme === 'creative' ? 'text-amber-600 print-accent' : 'text-gray-800 print-black italic'}`}>
+                               {exp.company || 'Company Name'}
+                             </p>
+                             {exp.description && (
+                               <ul className="list-disc list-outside ml-4 space-y-0.5">
+                                 {exp.description.split('\n').map((bullet, idx) => bullet.trim() && (
+                                   <li key={idx} className="text-[11px] leading-snug text-gray-700 print-black pl-1">{bullet.replace(/^[-•*]\s*/, '')}</li>
+                                 ))}
+                               </ul>
+                             )}
                            </div>
                          ) : null
                        ))}
@@ -368,28 +456,117 @@ export default function ResumeBuilderPage() {
                   </div>
                 )}
 
-                {resumeData.education.some(e => e.school || e.degree) && (
-                  <div className="mb-8">
-                     <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-4">Education</h2>
-                     <div className="space-y-4">
-                       {resumeData.education.map((edu, i) => (
-                         (edu.school || edu.degree) ? (
-                           <div key={i} className="flex justify-between items-baseline">
-                             <div>
-                               <h3 className="font-extrabold text-slate-900 dark:text-white text-base print-text">{edu.school || 'University Name'}</h3>
-                               <p className="text-sm font-bold text-slate-600 dark:text-slate-500 mt-0.5 print-text">{edu.degree || 'Degree'}</p>
+                {resumeData.projects.some(p => p.name) && (
+                  <div className="mb-5">
+                     <SectionHeader title="Projects" theme={theme} />
+                     <div className="space-y-3.5">
+                       {resumeData.projects.map((proj) => (
+                         proj.name ? (
+                           <div key={proj.id}>
+                             <div className="flex items-baseline gap-2 mb-0.5">
+                               <h3 className={`text-[13px] font-bold text-black print-black`}>{proj.name}</h3>
+                               {proj.link && <span className="text-[10px] text-gray-500 font-medium truncate max-w-[200px]">| {proj.link}</span>}
                              </div>
-                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{edu.year || '2024'}</span>
+                             {proj.tech && <p className="text-[11px] font-semibold text-gray-600 mb-1">Technologies: {proj.tech}</p>}
+                             <p className="text-[11px] leading-snug text-gray-700 print-black">{proj.description}</p>
                            </div>
                          ) : null
                        ))}
                      </div>
                   </div>
                 )}
+
+                <div className={`grid ${theme === 'executive' ? 'grid-cols-1' : 'grid-cols-2 gap-8'}`}>
+                  {resumeData.skills.length > 0 && (
+                    <div className="mb-5">
+                       <SectionHeader title="Skills" theme={theme} />
+                       <div className="flex flex-wrap gap-1.5">
+                         {resumeData.skills.map((skill, i) => (
+                           <span key={i} className={`text-[11px] px-2 py-0.5 ${theme === 'executive' ? 'font-medium text-black' : 'bg-slate-100 rounded text-slate-700 font-semibold'} print-black`}>
+                             {skill} {theme === 'executive' && i < resumeData.skills.length - 1 ? '•' : ''}
+                           </span>
+                         ))}
+                       </div>
+                    </div>
+                  )}
+
+                  {resumeData.education.some(e => e.school || e.degree) && (
+                    <div className="mb-5">
+                       <SectionHeader title="Education" theme={theme} />
+                       <div className="space-y-3">
+                         {resumeData.education.map((edu) => (
+                           (edu.school || edu.degree) ? (
+                             <div key={edu.id}>
+                               <div className="flex justify-between items-baseline mb-0.5">
+                                 <h3 className="text-[13px] font-bold text-black print-black">{edu.school || 'University'}</h3>
+                                 <span className="text-[11px] font-semibold text-gray-600 print-gray">{edu.year}</span>
+                               </div>
+                               <div className="flex justify-between text-[12px]">
+                                 <p className="text-gray-800 print-black italic">{edu.degree || 'Degree'}</p>
+                                 {edu.gpa && <span className="font-medium text-gray-600 print-gray whitespace-nowrap ml-2">GPA: {edu.gpa}</span>}
+                               </div>
+                             </div>
+                           ) : null
+                         ))}
+                       </div>
+                    </div>
+                  )}
+                </div>
+
              </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </div>
+  )
+}
+
+function SectionHeader({ title, theme }: { title: string, theme: Theme }) {
+  if (theme === 'executive') {
+    return <h2 className="text-[13px] font-bold uppercase tracking-widest text-black border-b border-black pb-1 mb-2.5 print-black">{title}</h2>
+  }
+  if (theme === 'modern') {
+    return <h2 className="text-[13px] font-bold uppercase tracking-wider text-sky-600 print-accent border-b border-slate-200 pb-1 mb-2.5">{title}</h2>
+  }
+  return <h2 className="text-[14px] font-black uppercase text-amber-600 print-accent mb-2.5">{title}</h2>
+}
+
+function SectionAccordion({ title, icon, activeSection, setActiveSection, sectionId, children }: any) {
+  const isActive = activeSection === sectionId
+  return (
+    <div className="shrink-0 bg-white dark:bg-[#12141a] rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+      <button onClick={() => setActiveSection(isActive ? '' : sectionId)} className="w-full flex items-center justify-between p-5 focus:outline-none hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+        <span className="font-bold tracking-tight flex items-center gap-3 text-slate-900 dark:text-white text-[15px]">
+          <span className="text-brand-500 dark:text-cyan-500">{icon}</span> {title}
+        </span>
+        <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${isActive ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {isActive && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="p-5 pt-0 border-t border-slate-100 dark:border-white/5">
+              <div className="mt-4">{children}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function Input({ label, value, onChange, placeholder, type = 'text' }: any) {
+  return (
+    <div>
+      <label className="text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-2 block">{label}</label>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full rounded-xl bg-slate-50 dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white px-4 py-3 outline-none focus:border-brand-500 transition-all text-sm" />
+    </div>
+  )
+}
+
+function AddButton({ onClick, label }: { onClick: () => void, label: string }) {
+  return (
+    <button onClick={onClick} className="w-full py-4 border border-dashed border-slate-300 dark:border-white/10 rounded-xl text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-cyan-400 hover:border-brand-500 dark:hover:border-cyan-500 hover:bg-brand-50/50 dark:hover:bg-cyan-500/5 transition-all flex items-center justify-center gap-2 font-bold text-sm">
+      <Plus size={18} /> {label}
+    </button>
   )
 }
