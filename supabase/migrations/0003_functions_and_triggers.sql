@@ -154,8 +154,8 @@ RETURNS TABLE (
     ROUND(AVG(g.total_score), 2) AS avg_total_score,
     COUNT(g.id) FILTER (WHERE g.grade = 'F') AS failing_subjects,
     CASE
-      WHEN AVG(att.percentage) < 60 OR COUNT(g.id) FILTER (WHERE g.grade = 'F') > 1 THEN 'High'
-      WHEN AVG(att.percentage) < 75 OR COUNT(g.id) FILTER (WHERE g.grade IN ('D','F')) > 0 THEN 'Medium'
+      WHEN COUNT(g.id) FILTER (WHERE g.grade = 'F') > 1 THEN 'High'
+      WHEN COUNT(g.id) FILTER (WHERE g.grade IN ('D','F')) > 0 THEN 'Medium'
       ELSE 'Low'
     END AS risk_level
   FROM profiles p

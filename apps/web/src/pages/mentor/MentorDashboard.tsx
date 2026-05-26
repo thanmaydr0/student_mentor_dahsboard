@@ -83,7 +83,7 @@ export default function MentorDashboard() {
   // Unique semesters available in cohort
   const availableSemesters = useMemo(() => {
     if (!cohortData) return []
-    const sems = new Set(cohortData.map((s: any) => s.semester))
+    const sems = new Set(cohortData.map((s: any) => Number(s.semester)))
     return Array.from(sems).sort((a, b) => a - b)
   }, [cohortData])
 
@@ -116,7 +116,7 @@ export default function MentorDashboard() {
       // 1. Search Query
       if (searchQuery && !student.full_name.toLowerCase().includes(searchQuery.toLowerCase())) return false
       // 2. Semesters
-      if (selectedSemesters.length > 0 && !selectedSemesters.includes(student.semester)) return false
+      if (selectedSemesters.length > 0 && !selectedSemesters.includes(Number(student.semester))) return false
       // 3. Tab State
       const risk = student.risk_level || 'Low'
       if (activeTab === 'High Risk' && risk !== 'High') return false
