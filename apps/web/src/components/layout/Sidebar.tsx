@@ -22,7 +22,8 @@ import {
   TrendingUp,
   Target,
   CreditCard,
-  Receipt
+  Receipt,
+  ScanSearch
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useUnreadCount } from '../../hooks/student/useNotifications'
@@ -62,6 +63,7 @@ const mentorNav: NavItem[] = [
   { label: 'IAT Marks', path: '/mentor/iat-marks', icon: ClipboardList },
   { label: 'Result Fetch', path: '/mentor/results', icon: FileText },
   { label: 'Fee Receipts', path: '/mentor/fees', icon: Receipt },
+  { label: 'ERP Deep Scraper', path: '/mentor/erp-scraper', icon: ScanSearch },
   { label: 'Resource Library', path: '/mentor/library', icon: Library },
   { label: 'Timetable', path: '/mentor/timetable', icon: Calendar },
   { label: 'Profile', path: '/profile', icon: UserCircle },

@@ -22,6 +22,7 @@ const ResultFetchPage = lazy(() => import('./pages/mentor/ResultFetchPage'))
 const CommunityPage = lazy(() => import('./pages/mentor/CommunityPage'))
 const ParentCommsPage = lazy(() => import('./pages/mentor/ParentCommsPage'))
 const FeeManagementPage = lazy(() => import('./pages/mentor/FeeManagementPage'))
+const ERPScraperPage = lazy(() => import('./pages/mentor/ERPScraperPage'))
 const ResourceLibraryPage = lazy(() => import('./pages/student/ResourceLibraryPage'))
 const LeaderboardPage = lazy(() => import('./pages/student/LeaderboardPage'))
 const CalendarParserPage = lazy(() => import('./pages/student/CalendarParserPage'))
@@ -90,6 +91,7 @@ export default function App() {
                   <Route path="/mentor/community" element={<CommunityPage />} />
                   <Route path="/mentor/parents" element={<ParentCommsPage />} />
                   <Route path="/mentor/fees" element={<FeeManagementPage />} />
+                  <Route path="/mentor/erp-scraper" element={<ERPScraperPage />} />
                   <Route path="/mentor/library" element={<ResourceLibraryPage />} />
                 </Route>
 
