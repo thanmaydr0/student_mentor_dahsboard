@@ -5,10 +5,7 @@ module.exports = function (api) {
       ["babel-preset-expo", { jsxImportSource: "nativewind" }],
       "nativewind/babel",
     ],
-    plugins: [
-      ["@babel/plugin-transform-private-methods", { loose: true }],
-      ["@babel/plugin-transform-class-properties", { loose: true }],
-      ["@babel/plugin-transform-private-property-in-object", { loose: true }],
-    ],
+    // No extra class-property plugins needed — babel-preset-expo already
+    // includes them in the correct order (after the TypeScript transform).
   };
 };
