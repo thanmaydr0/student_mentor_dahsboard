@@ -21,10 +21,12 @@ const IATMarksPage = lazy(() => import('./pages/mentor/IATMarksPage'))
 const ResultFetchPage = lazy(() => import('./pages/mentor/ResultFetchPage'))
 const CommunityPage = lazy(() => import('./pages/mentor/CommunityPage'))
 const ParentCommsPage = lazy(() => import('./pages/mentor/ParentCommsPage'))
+const FeeManagementPage = lazy(() => import('./pages/mentor/FeeManagementPage'))
 const ResourceLibraryPage = lazy(() => import('./pages/student/ResourceLibraryPage'))
 const LeaderboardPage = lazy(() => import('./pages/student/LeaderboardPage'))
 const CalendarParserPage = lazy(() => import('./pages/student/CalendarParserPage'))
 const CareerAssistancePage = lazy(() => import('./pages/student/career/CareerAssistancePage'))
+const FeePaymentPage = lazy(() => import('./pages/student/FeePaymentPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const ParentDashboard = lazy(() => import('./pages/parent/ParentDashboard'))
 const AcademicGPSPage = lazy(() => import('./pages/parent/AcademicGPSPage'))
@@ -74,6 +76,7 @@ export default function App() {
                   <Route path="/student/leaderboard" element={<LeaderboardPage />} />
                   <Route path="/student/calendar" element={<CalendarParserPage />} />
                   <Route path="/student/career" element={<CareerAssistancePage />} />
+                  <Route path="/student/fees" element={<FeePaymentPage />} />
                 </Route>
 
                 {/* Mentor routes */}
@@ -86,6 +89,7 @@ export default function App() {
                   <Route path="/mentor/results" element={<ResultFetchPage />} />
                   <Route path="/mentor/community" element={<CommunityPage />} />
                   <Route path="/mentor/parents" element={<ParentCommsPage />} />
+                  <Route path="/mentor/fees" element={<FeeManagementPage />} />
                   <Route path="/mentor/library" element={<ResourceLibraryPage />} />
                 </Route>
 
