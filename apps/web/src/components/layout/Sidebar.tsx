@@ -66,6 +66,7 @@ const mentorNav: NavItem[] = [
   { label: 'Result Fetch', path: '/mentor/results', icon: FileText },
   { label: 'Fee Receipts', path: '/mentor/fees', icon: Receipt },
   { label: 'ERP Deep Scraper', path: '/mentor/erp-scraper', icon: ScanSearch },
+  { label: 'TYL Tracker', path: '/mentor/tyl-tracker', icon: TrendingUp },
   { label: 'Resource Library', path: '/mentor/library', icon: Library },
   { label: 'Timetable', path: '/mentor/timetable', icon: Calendar },
   { label: 'Profile', path: '/profile', icon: UserCircle },

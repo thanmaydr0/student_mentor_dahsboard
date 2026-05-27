@@ -15,6 +15,7 @@ const AttendancePage = lazy(() => import('./pages/student/AttendancePage'))
 const NotificationsPage = lazy(() => import('./pages/shared/NotificationsPage'))
 const MentorDashboard = lazy(() => import('./pages/mentor/MentorDashboard'))
 const StudentDetailPage = lazy(() => import('./pages/mentor/StudentDetailPage'))
+const TYLTrackerPage = lazy(() => import('./pages/mentor/TYLTrackerPage'))
 const BulkAttendancePage = lazy(() => import('./pages/mentor/BulkAttendancePage'))
 const TimetableManagePage = lazy(() => import('./pages/mentor/TimetableManagePage'))
 const IATMarksPage = lazy(() => import('./pages/mentor/IATMarksPage'))
@@ -94,6 +95,7 @@ export default function App() {
                   <Route path="/mentor/parents" element={<ParentCommsPage />} />
                   <Route path="/mentor/fees" element={<FeeManagementPage />} />
                   <Route path="/mentor/erp-scraper" element={<ERPScraperPage />} />
+                  <Route path="/mentor/tyl-tracker" element={<TYLTrackerPage />} />
                   <Route path="/mentor/library" element={<ResourceLibraryPage />} />
                 </Route>
 
