@@ -41,23 +41,38 @@ async function scrapeTab(url: string, cookie: string): Promise<string> {
       },
       body: JSON.stringify({
         url,
-        formats: ['markdown'],
+        formats: ['html'], // Fetch HTML because Markdown drops <input> values!
         headers: { 'Cookie': cookie },
         waitFor: 3000,
         timeout: 30000
       })
     })
     const data = await res.json()
-    return data.data?.markdown || ''
+    let html = data.data?.html || ''
+    
+    if (html) {
+      // Minify HTML to save tokens and fit all 18 tabs into GPT-4o context
+      html = html.replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, '')
+                 .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+                 .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+                 .replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, '')
+                 .replace(/<!--[\s\S]*?-->/g, '')
+                 // Strip class, style, id to save massive token amounts, but KEEP value="..."
+                 .replace(/\s(class|style|id|placeholder)="[^"]*"/gi, '')
+                 .replace(/\s+/g, ' ')
+                 .trim()
+      return html
+    }
+    return ''
   } catch (e) {
     console.warn(`Failed to scrape ${url}:`, e)
     return ''
   }
 }
 
-async function cleanDataWithAI(rawMarkdown: string, studentName: string) {
+async function cleanDataWithAI(rawHtml: string, studentName: string) {
   const systemPrompt = `You are an expert data extraction AI.
-You are given a MASSIVE raw Markdown dump scraped from EVERY tab of a university ERP system for a student named ${studentName}.
+You are given a MASSIVE raw HTML dump scraped from EVERY tab of a university ERP system for a student named ${studentName}.
 The data contains a lot of empty form fields, dropdown options (like lists of countries/years), and navigation menus which you MUST ignore.
 
 Your job is to extract ONLY the actual filled-in information and organize it into a comprehensive, beautifully formatted Markdown report.
@@ -129,7 +144,7 @@ CRITICAL RULES:
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is the raw ERP markdown dump from ALL tabs. Extract every piece of real data:\n\n${rawMarkdown.substring(0, 120000)}` }
+        { role: 'user', content: `Here is the raw ERP HTML dump from ALL tabs. Extract every piece of real data:\n\n${rawHtml.substring(0, 120000)}` }
       ],
       temperature: 0.1,
       max_tokens: 4096
@@ -138,7 +153,7 @@ CRITICAL RULES:
 
   if (!res.ok) {
     console.error('OpenAI Error', await res.text());
-    return rawMarkdown;
+    return rawHtml;
   }
 
   const json = await res.json();
@@ -211,7 +226,7 @@ Deno.serve(async (req) => {
     // Step 2: Scrape ALL tabs in parallel batches
     // ============================
     // Scrape in batches of 6 to avoid rate limiting
-    const allMarkdown: string[] = []
+    const allHtml: string[] = []
     const BATCH_SIZE = 6
     
     for (let i = 0; i < ERP_TAB_URLS.length; i += BATCH_SIZE) {
@@ -219,41 +234,41 @@ Deno.serve(async (req) => {
       const results = await Promise.all(
         batch.map(tab => scrapeTab(tab.url, jsessionid))
       )
-      results.forEach((md, idx) => {
-        if (md && md.length > 50) {
-          allMarkdown.push(`\n\n--- TAB: ${batch[idx].name} ---\n\n${md}`)
+      results.forEach((html, idx) => {
+        if (html && html.length > 50) {
+          allHtml.push(`\n\n--- TAB: ${batch[idx].name} ---\n\n${html}`)
         }
       })
       console.log(`[ERP Deep Scraper] Batch ${Math.floor(i / BATCH_SIZE) + 1} done. Got ${results.filter(r => r.length > 50).length}/${batch.length} tabs with data.`)
     }
 
-    const combinedMarkdown = allMarkdown.join('\n\n')
+    const combinedHtml = allHtml.join('\n\n')
     
-    if (combinedMarkdown.length < 200) {
+    if (combinedHtml.length < 200) {
       throw new Error('Scraped content is too short across all tabs. The ERP session might have expired.')
     }
 
-    console.log(`[ERP Deep Scraper] Total scraped: ${combinedMarkdown.length} chars from ${allMarkdown.length} tabs. Sending to AI...`)
+    console.log(`[ERP Deep Scraper] Total scraped: ${combinedHtml.length} chars from ${allHtml.length} tabs. Sending to AI...`)
 
     // ============================
     // Step 3: Use GPT-4o to clean and structure ALL the data
     // ============================
-    const cleanMarkdown = await cleanDataWithAI(combinedMarkdown, studentCheck.full_name)
+    const cleanMarkdown = await cleanDataWithAI(combinedHtml, studentCheck.full_name)
 
     return new Response(JSON.stringify({ 
       success: true, 
       markdown: cleanMarkdown,
       student_name: studentCheck.full_name,
-      tabs_scraped: allMarkdown.length
+      tabs_scraped: allHtml.length
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
-  } catch (err: any) {
-    console.error('ERP Deep Scraper Error:', err)
-    return new Response(JSON.stringify({ error: err.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  } catch (error: any) {
+    console.error('[ERP Deep Scraper] Error:', error.message || error)
+    return new Response(JSON.stringify({ error: error.message || 'An error occurred' }), {
       status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 })
