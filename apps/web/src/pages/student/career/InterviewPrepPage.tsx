@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Play, BookOpen, Star, X, Clock, Video } from 'lucide-react'
 
 const MOCK_VIDEOS = [
-  { id: 'HG68Ymazo18', title: 'How to Answer "Tell Me About Yourself"', author: 'CareerVidz', thumb: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80', duration: '12:45' },
-  { id: '8PiewhNV7s0', title: 'The STAR Method for Behavioral Interviews', author: 'Dan Croitor', thumb: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&auto=format&fit=crop&q=80', duration: '08:20' },
-  { id: 'XY52padHVzQ', title: 'Salary Negotiation Strategies', author: 'Harvard Business Review', thumb: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80', duration: '15:10' },
-  { id: 'Tt08KmFfIYQ', title: 'Top 10 Resume Mistakes to Avoid', author: 'Jeff Su', thumb: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600&auto=format&fit=crop&q=80', duration: '10:05' },
+  { id: 'HG68Ymazo18', title: 'How to Answer "Tell Me About Yourself"', author: 'CareerVidz', thumb: 'https://img.youtube.com/vi/HG68Ymazo18/maxresdefault.jpg', duration: '12:45' },
+  { id: '8PiewhNV7s0', title: 'The STAR Method for Behavioral Interviews', author: 'Dan Croitor', thumb: 'https://img.youtube.com/vi/8PiewhNV7s0/hqdefault.jpg', duration: '08:20' },
+  { id: 'XY52padHVzQ', title: 'Salary Negotiation Strategies', author: 'Harvard Business Review', thumb: 'https://img.youtube.com/vi/XY52padHVzQ/maxresdefault.jpg', duration: '15:10' },
+  { id: 'Tt08KmFfIYQ', title: 'Top 10 Resume Mistakes to Avoid', author: 'Jeff Su', thumb: 'https://img.youtube.com/vi/Tt08KmFfIYQ/maxresdefault.jpg', duration: '10:05' },
 ]
 
 export default function InterviewPrepPage() {

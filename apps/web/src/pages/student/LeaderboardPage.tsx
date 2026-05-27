@@ -688,13 +688,7 @@ export default function LeaderboardPage() {
                 <p className="text-slate-400">Up to 250 XP</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-white rounded-xl p-3 border border-slate-100">
-              <Flame size={16} className="text-amber-500 shrink-0" />
-              <div>
-                <p className="font-bold text-slate-700">Bonuses</p>
-                <p className="text-slate-400">Up to 150 XP</p>
-              </div>
-            </div>
+
             <div className="flex items-center gap-2 bg-white rounded-xl p-3 border border-slate-100">
               <Shield size={16} className="text-red-500 shrink-0" />
               <div>
