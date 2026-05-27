@@ -28,7 +28,9 @@ const ResourceLibraryPage = lazy(() => import('./pages/student/ResourceLibraryPa
 const LeaderboardPage = lazy(() => import('./pages/student/LeaderboardPage'))
 const CalendarParserPage = lazy(() => import('./pages/student/CalendarParserPage'))
 const CareerAssistancePage = lazy(() => import('./pages/student/career/CareerAssistancePage'))
+const ResumeBuilderPage = lazy(() => import('./pages/student/career/ResumeBuilderPage'))
 const UnstopMatchesPage = lazy(() => import('./pages/student/career/UnstopMatchesPage'))
+const AchievementVaultPage = lazy(() => import('./pages/student/AchievementVaultPage'))
 const FeePaymentPage = lazy(() => import('./pages/student/FeePaymentPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const ParentDashboard = lazy(() => import('./pages/parent/ParentDashboard'))
@@ -73,6 +75,9 @@ export default function App() {
                 <Route element={<ProtectedRoute role="student" />}>
                   <Route path="/student/dashboard" element={<StudentDashboard />} />
                   <Route path="/student/timetable" element={<TimetablePage />} />
+                  <Route path="/student/career/resume" element={<ResumeBuilderPage />} />
+                  <Route path="/student/career/unstop" element={<UnstopMatchesPage />} />
+                  <Route path="/student/achievements" element={<AchievementVaultPage />} />
                   <Route path="/student/attendance" element={<AttendancePage />} />
                   <Route path="/student/notifications" element={<NotificationsPage />} />
                   <Route path="/student/library" element={<ResourceLibraryPage />} />
