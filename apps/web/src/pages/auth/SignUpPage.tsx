@@ -78,27 +78,27 @@ export default function SignUpPage() {
   // — Success screen after signup —
   if (submitted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-surface-50 via-brand-50 to-surface-100 px-4">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-surface-50 via-brand-50 to-surface-100 dark:from-[#0a0a0c] dark:via-[#121214] dark:to-[#0a0a0c] px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-md"
         >
-          <div className="rounded-2xl border border-brand-100 bg-white/80 p-8 text-center shadow-card backdrop-blur-sm sm:p-10">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-              <Mail size={28} className="text-green-600" strokeWidth={1.8} />
+          <div className="rounded-2xl border border-brand-100 dark:border-white/10 bg-white/80 dark:bg-black/40 p-8 text-center shadow-card backdrop-blur-sm sm:p-10">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-500/20">
+              <Mail size={28} className="text-green-600 dark:text-green-400" strokeWidth={1.8} />
             </div>
-            <h2 className="mb-2 text-xl font-semibold text-brand-900">Check your email</h2>
-            <p className="mb-6 text-sm leading-relaxed text-brand-400">
+            <h2 className="mb-2 text-xl font-semibold text-brand-900 dark:text-white">Check your email</h2>
+            <p className="mb-6 text-sm leading-relaxed text-brand-400 dark:text-slate-400">
               We sent a confirmation link to{' '}
-              <span className="font-medium text-brand-700">{email}</span>.
+              <span className="font-medium text-brand-700 dark:text-cyan-400">{email}</span>.
               <br />
               Click the link to activate your account.
             </p>
             <Link
               to="/auth/login"
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-800 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-800 dark:bg-cyan-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700 dark:hover:bg-cyan-500"
             >
               Go to Sign In
             </Link>
@@ -109,10 +109,10 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-surface-50 via-brand-50 to-surface-100 px-4 py-10">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-surface-50 via-brand-50 to-surface-100 dark:from-[#0a0a0c] dark:via-[#121214] dark:to-[#0a0a0c] px-4 py-10">
       {/* Subtle grid background */}
       <div
-        className="pointer-events-none fixed inset-0 opacity-[0.03]"
+        className="pointer-events-none fixed inset-0 opacity-[0.03] dark:opacity-[0.01]"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40L40 0M-10 10L10 -10M30 50L50 30' stroke='%23334155' stroke-width='1'/%3E%3C/svg%3E")`,
         }}
@@ -124,17 +124,17 @@ export default function SignUpPage() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-md"
       >
-        <div className="rounded-2xl border border-brand-100 bg-white/80 p-8 shadow-card backdrop-blur-sm sm:p-10">
+        <div className="rounded-2xl border border-brand-100 dark:border-white/10 bg-white/80 dark:bg-black/40 p-8 shadow-card backdrop-blur-sm sm:p-10">
           {/* Logo */}
           <div className="mb-8 flex flex-col items-center gap-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-800">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-800 dark:bg-cyan-600">
               <GraduationCap size={24} className="text-white" strokeWidth={1.8} />
             </div>
-            <h1 className="text-xl font-semibold text-brand-900">
+            <h1 className="text-xl font-semibold text-brand-900 dark:text-white">
               Create your account
             </h1>
-            <p className="text-sm text-brand-400">
-              Join Edu<span className="font-medium text-brand-600">Predict</span> today
+            <p className="text-sm text-brand-400 dark:text-slate-400">
+              Join Edu<span className="font-medium text-brand-600 dark:text-cyan-400">Predict</span> today
             </p>
           </div>
 
@@ -184,7 +184,7 @@ export default function SignUpPage() {
 
             {/* Role Selector */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-brand-500">
+              <label className="mb-2 block text-xs font-medium text-brand-500 dark:text-slate-400">
                 I am a
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -196,8 +196,8 @@ export default function SignUpPage() {
                     className={cn(
                       'flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition-all duration-200',
                       role === r
-                        ? 'border-brand-700 bg-brand-800 text-white shadow-sm'
-                        : 'border-brand-200 bg-white text-brand-600 hover:border-brand-300 hover:bg-brand-50'
+                        ? 'border-brand-700 bg-brand-800 text-white shadow-sm dark:border-cyan-500/50 dark:bg-cyan-500/20 dark:text-cyan-400'
+                        : 'border-brand-200 bg-white text-brand-600 hover:border-brand-300 hover:bg-brand-50 dark:border-white/10 dark:bg-transparent dark:text-slate-400 dark:hover:border-white/20 dark:hover:bg-white/5'
                     )}
                   >
                     {r === 'student' ? (
@@ -223,7 +223,7 @@ export default function SignUpPage() {
 
             {/* Semester pill selector */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-brand-500">
+              <label className="mb-2 block text-xs font-medium text-brand-500 dark:text-slate-400">
                 Semester
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -235,8 +235,8 @@ export default function SignUpPage() {
                     className={cn(
                       'flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-all duration-150',
                       semester === s
-                        ? 'bg-brand-800 text-white shadow-sm'
-                        : 'bg-brand-50 text-brand-600 hover:bg-brand-100'
+                        ? 'bg-brand-800 text-white shadow-sm dark:bg-cyan-500/20 dark:text-cyan-400 dark:border dark:border-cyan-500/50'
+                        : 'bg-brand-50 text-brand-600 hover:bg-brand-100 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
                     )}
                   >
                     {s}
@@ -256,18 +256,18 @@ export default function SignUpPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-brand-400">
+          <p className="mt-6 text-center text-sm text-brand-400 dark:text-slate-400">
             Already have an account?{' '}
             <Link
               to="/auth/login"
-              className="font-medium text-brand-700 underline-offset-2 transition-colors hover:text-brand-900 hover:underline"
+              className="font-medium text-brand-700 dark:text-cyan-400 underline-offset-2 transition-colors hover:text-brand-900 dark:hover:text-cyan-300 hover:underline"
             >
               Sign in
             </Link>
           </p>
         </div>
 
-        <p className="mt-6 text-center text-xs text-brand-300">
+        <p className="mt-6 text-center text-xs text-brand-300 dark:text-slate-500">
           © {new Date().getFullYear()} EduPredict · Academic Intelligence
         </p>
       </motion.div>
