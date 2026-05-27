@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, BookOpen, FileText, Database, Sparkles, ExternalLink, Library } from 'lucide-react';
+import { Search, BookOpen, FileText, Database, Sparkles, ExternalLink, Library, Globe, Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import toast from 'react-hot-toast';
+import { supabase } from '../../lib/supabase';
 
 interface ResourceResult {
   title: string;
@@ -21,6 +22,11 @@ export default function ResourceLibraryPage() {
   const [rawCount, setRawCount] = useState(0);
   const [isIndexLoaded, setIsIndexLoaded] = useState(false);
   const [semanticMetadata, setSemanticMetadata] = useState<any>(null);
+
+  // VTU Circle State
+  const [vtuSem, setVtuSem] = useState('3');
+  const [vtuSubject, setVtuSubject] = useState('');
+  const [isVtuLoading, setIsVtuLoading] = useState(false);
 
   // Cache the parsed CSV data to avoid re-parsing on every search
   const csvDataRef = useRef<any[] | null>(null);
@@ -195,6 +201,48 @@ export default function ResourceLibraryPage() {
     }
   };
 
+  const handleVtuSearch = async () => {
+    if (!vtuSubject.trim()) {
+      return toast.error("Please enter a subject name");
+    }
+
+    setIsVtuLoading(true);
+    setHasSearched(true);
+    setRawCount(0);
+    setSemanticMetadata(null);
+    setResults([]);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('vtucircle-scraper', {
+        body: { semester: vtuSem, subject: vtuSubject }
+      });
+
+      if (error) throw error;
+      if (data.success === false && data.error) {
+        toast.error(data.error);
+        return;
+      }
+      if (!data.success) throw new Error(data.error || "Unknown error");
+
+      if (data.notes && data.notes.length > 0) {
+        const mappedNotes: ResourceResult[] = data.notes.map((n: any) => ({
+          title: n.title,
+          url: n.url,
+          confidence: 99
+        }));
+        setResults(mappedNotes);
+        toast.success(`Found ${mappedNotes.length} notes for ${data.matchedSubject || 'VTU Circle'}!`);
+      } else {
+        toast.error("No modules found on the matched VTU Circle page.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to fetch VTU Circle notes. Please try again.");
+    } finally {
+      setIsVtuLoading(false);
+    }
+  };
+
   const presetOptions = [
     { label: 'IAT Papers', query: 'IAT Question Paper', icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { label: 'VTU Question Papers', query: 'VTU Question Paper', icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -268,6 +316,45 @@ export default function ResourceLibraryPage() {
             </div>
           </Card>
 
+          <Card className="p-6 border-cyan-100 shadow-sm bg-gradient-to-br from-cyan-50 to-white dark:bg-gradient-to-br dark:from-cyan-950/20 dark:to-transparent dark:border-cyan-500/10">
+            <h2 className="font-semibold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <Globe size={18} className="text-cyan-500" />
+              VTU Circle Notes (AIML/DS)
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              Scrape vtucircle.com directly to find your notes by subject.
+            </p>
+            <div className="space-y-4">
+              <select
+                value={vtuSem}
+                onChange={(e) => setVtuSem(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#12141a] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:border-cyan-500 outline-none transition-all text-sm font-medium"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
+                  <option key={sem} value={sem}>Semester {sem}</option>
+                ))}
+              </select>
+              
+              <Input
+                label=""
+                placeholder="e.g. Data Structures"
+                value={vtuSubject}
+                onChange={(e) => setVtuSubject(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleVtuSearch()}
+                className="bg-white dark:bg-[#12141a]"
+              />
+              <Button 
+                onClick={handleVtuSearch} 
+                loading={isVtuLoading}
+                fullWidth
+                className="bg-cyan-600 hover:bg-cyan-700 text-white shadow-lg shadow-cyan-600/20"
+              >
+                {!isVtuLoading && <Search size={16} className="mr-2" />}
+                Fetch Notes
+              </Button>
+            </div>
+          </Card>
+
         </div>
 
         {/* Right Column: Results */}
@@ -278,13 +365,13 @@ export default function ResourceLibraryPage() {
               Search Results
             </h2>
 
-            {isLoading ? (
+            {isLoading || isVtuLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center text-slate-400 space-y-4">
                 <div className="relative flex justify-center items-center h-16 w-16">
                   <div className="absolute animate-ping inline-flex h-full w-full rounded-full bg-indigo-400 opacity-20"></div>
                   <Sparkles size={32} className="text-indigo-500 animate-pulse" />
                 </div>
-                <p>{"Analyzing semantics & searching index..."}</p>
+                <p>{isVtuLoading ? "Scraping VTU Circle (takes ~5-10s)..." : "Analyzing semantics & searching index..."}</p>
                 {rawCount === 0 && !isIndexLoaded && (
                    <p className="text-xs text-indigo-400 animate-pulse">Downloading repository index (one-time process)...</p>
                 )}
