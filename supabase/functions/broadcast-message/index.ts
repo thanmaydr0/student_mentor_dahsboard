@@ -12,7 +12,6 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  // ALWAYS return 200 so the frontend gets the JSON body.
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -20,15 +19,25 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    
+    // Client for auth check
+    const supabaseClient = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_ANON_KEY')!
+    )
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+    // Admin client for DB inserts
+    const supabaseAdmin = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''))
     if (authError || !user) {
       return new Response(JSON.stringify({ ok: false, error: 'Unauthorized: ' + (authError?.message || 'No user') }), { headers: corsHeaders })
     }
 
-    const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single()
+    const { data: profile } = await supabaseAdmin.from('profiles').select('role, full_name').eq('id', user.id).single()
     if (profile?.role !== 'mentor' && profile?.role !== 'admin') {
       return new Response(JSON.stringify({ ok: false, error: 'Forbidden: Only mentors can broadcast.' }), { headers: corsHeaders })
     }
@@ -59,7 +68,7 @@ serve(async (req) => {
     }
 
     // ── Insert Notification (Generic DB copy) ──
-    const { data: msgData, error: msgError } = await supabase
+    const { data: msgData, error: msgError } = await supabaseAdmin
       .from('notification_messages')
       .insert({ title, body: dbBody, type: 'info', deep_link: '/student/notifications' })
       .select('id').single()
@@ -70,7 +79,7 @@ serve(async (req) => {
 
     // ── Link to Students ──
     const userNotifications = studentIds.map((studentId: string) => ({ user_id: studentId, message_id: msgData.id, is_read: false }))
-    const { error: linkError } = await supabase.from('user_notifications').insert(userNotifications)
+    const { error: linkError } = await supabaseAdmin.from('user_notifications').insert(userNotifications)
     if (linkError) console.error("Link error:", linkError);
 
     // ── Parse Channels ──
@@ -84,7 +93,7 @@ serve(async (req) => {
     // ── Fetch Parent Contacts ──
     let studentProfiles: any[] = []
     try {
-      const { data: profilesData } = await supabase.from('profiles').select('id, full_name, parent_email, parent_phone').in('id', studentIds);
+      const { data: profilesData } = await supabaseAdmin.from('profiles').select('id, full_name, parent_email, parent_phone').in('id', studentIds);
       if (profilesData) studentProfiles = profilesData;
     } catch (e) {
       console.warn("Could not fetch parent contacts", e);
@@ -97,7 +106,7 @@ serve(async (req) => {
     if (includeAttendance) {
       try {
         const attPromises = studentIds.map((id: string) => 
-          supabase.rpc('get_attendance_summary', { p_student_id: id }).then(res => ({ id, data: res.data }))
+          supabaseAdmin.rpc('get_attendance_summary', { p_student_id: id }).then(res => ({ id, data: res.data }))
         );
         allAttendance = await Promise.all(attPromises);
       } catch (e) { console.error("Attendance fetch error:", e); }
@@ -105,7 +114,7 @@ serve(async (req) => {
 
     if (includeIatMarks) {
       try {
-        const { data: gData } = await supabase
+        const { data: gData } = await supabaseAdmin
           .from('grades')
           .select('student_id, internal_marks, classes(subjects(name))')
           .in('student_id', studentIds);
@@ -157,7 +166,7 @@ serve(async (req) => {
 
       // 1. Log intervention
       try {
-        await supabase.from('interventions').insert({
+        await supabaseAdmin.from('interventions').insert({
           student_id: studentId,
           mentor_id: user.id,
           type: 'Message',
