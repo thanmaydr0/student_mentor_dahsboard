@@ -273,9 +273,22 @@ function LevelCard({ title, level, icon, color }: { title: string, level: string
 
   const emptyColors = 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-[#12141a] dark:text-slate-600 dark:border-white/5'
 
+  // Calculate uncleared levels (assuming standard max of 3)
+  const maxLevel = 3
+  const currentLevelNum = parseInt(cleanLvl.replace(/\D/g, ''), 10) || 0
+  const unclearedLevels = []
+  
+  for (let i = currentLevelNum + 1; i <= maxLevel; i++) {
+    unclearedLevels.push(i)
+  }
+
+  // Extract prefix like "Px" from "Programming (Px)"
+  const prefixMatch = title.match(/\((.*?)\)/)
+  const prefix = prefixMatch ? prefixMatch[1] : 'L'
+
   return (
-    <Card className={`p-6 border-2 transition-all ${isCleared ? colors : emptyColors}`}>
-      <div className="flex justify-between items-start mb-6">
+    <Card className={`p-6 border-2 transition-all flex flex-col justify-between ${isCleared ? colors : emptyColors}`}>
+      <div className="flex justify-between items-start mb-4">
         <div className={`p-3 rounded-xl ${isCleared ? 'bg-white dark:bg-black/20' : 'bg-slate-100 dark:bg-white/5'}`}>
           {icon}
         </div>
@@ -291,10 +304,27 @@ function LevelCard({ title, level, icon, color }: { title: string, level: string
       </div>
       <div>
         <p className="text-[11px] font-black tracking-widest uppercase mb-1 opacity-70">{title}</p>
-        <h3 className="text-3xl font-black">
-          {isCleared ? cleanLvl : '—'}
-        </h3>
+        <div className="flex items-end justify-between mb-4">
+          <h3 className="text-3xl font-black">
+            {isCleared ? cleanLvl : '—'}
+          </h3>
+        </div>
+        
+        {/* PENDING LEVELS BAR - PROMINENT */}
+        {unclearedLevels.length > 0 && (
+          <div className="mt-2 pt-4 border-t border-current/10">
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-60 block mb-2">Pending Levels</span>
+            <div className="flex flex-wrap gap-2">
+              {unclearedLevels.map(lvl => (
+                <span key={lvl} className="px-3 py-1.5 flex items-center justify-center rounded-lg bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 text-[11px] font-black border border-red-500/20">
+                  {prefix}{lvl}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   )
 }
+
