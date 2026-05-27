@@ -46,6 +46,7 @@ export default function ResumeBuilderPage() {
   const [tips, setTips] = useState<string[]>([])
   const [isScoring, setIsScoring] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
+  const [isEnhancingFull, setIsEnhancingFull] = useState(false)
   const [activeSection, setActiveSection] = useState<string>('personal')
   const [enhancingIndex, setEnhancingIndex] = useState<number | null>(null)
   
@@ -119,6 +120,25 @@ export default function ResumeBuilderPage() {
       toast.error('Failed to calculate ATS score')
     } finally {
       setIsScoring(false)
+    }
+  }
+
+  const handleEnhanceFullResume = async () => {
+    setIsEnhancingFull(true)
+    const loadingToast = toast.loading('AI is rewriting your resume...')
+    try {
+      const { data, error } = await supabase.functions.invoke('enhance-full-resume', { body: { resumeData } })
+      if (error) throw error
+      if (data?.enhancedResume) {
+        setResumeData(prev => ({ ...prev, ...data.enhancedResume }))
+        toast.success('Resume enhanced successfully!', { id: loadingToast })
+      } else {
+        throw new Error('Invalid response from AI')
+      }
+    } catch (err) {
+      toast.error('Failed to enhance resume', { id: loadingToast })
+    } finally {
+      setIsEnhancingFull(false)
     }
   }
 
@@ -226,6 +246,10 @@ export default function ResumeBuilderPage() {
             <ShieldCheck size={16} /> {isScoring ? 'Scanning...' : 'ATS Scan'}
           </button>
           
+          <button onClick={handleEnhanceFullResume} disabled={isEnhancingFull} className="flex items-center gap-2 px-5 py-2.5 bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-500/20 rounded-xl transition-all font-semibold text-sm whitespace-nowrap">
+            <Wand2 size={16} /> {isEnhancingFull ? 'Enhancing...' : 'AI Enhance'}
+          </button>
+
           <button onClick={handlePrint} className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 dark:bg-cyan-600 text-white hover:bg-brand-700 dark:hover:bg-cyan-500 rounded-xl transition-all font-bold text-sm shadow-sm whitespace-nowrap ml-auto">
             <Download size={16} /> Download PDF
           </button>
