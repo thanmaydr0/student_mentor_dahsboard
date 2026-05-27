@@ -109,11 +109,13 @@ export default function CommunityPage() {
       toast.loading('Dispatching messages...', { id: 'broadcast' })
       const studentIds = Array.from(selectedStudents)
       
+      const channelsArray = Object.entries(channels).filter(([_, v]) => v).map(([k]) => k)
+
       const { data, error } = await supabase.functions.invoke('broadcast-message', {
         body: {
           studentIds,
           message,
-          channels,
+          channels: channelsArray,
           includeAiSummary,
           includeVtuResult,
           includeAttendance,
@@ -122,10 +124,23 @@ export default function CommunityPage() {
         }
       })
 
-      if (error) throw error
-      if (!data.ok) throw new Error(data.error || 'Failed to send broadcast')
+      // If supabase-js gives us a FunctionsHttpError (non-2xx), try to extract the body
+      if (error) {
+        let detail = error.message
+        try {
+          // FunctionsHttpError has a .context property with the Response
+          const ctx = (error as any).context
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json()
+            detail = body?.error || body?.message || detail
+          }
+        } catch (_) { /* ignore */ }
+        throw new Error(detail)
+      }
+
+      if (!data?.ok) throw new Error(data?.error || 'Failed to send broadcast')
       
-      toast.success('Messages successfully dispatched!', { id: 'broadcast' })
+      toast.success(data.message || 'Messages successfully dispatched!', { id: 'broadcast' })
       setMessage('')
       setIncludeAiSummary(false)
       setIncludeVtuResult(false)
@@ -135,6 +150,7 @@ export default function CommunityPage() {
       setSelectedStudents(new Set())
     } catch (err: any) {
       toast.dismiss('vtu-fetch')
+      console.error('[Broadcast Error]', err)
       toast.error(err.message || 'Could not send broadcast', { id: 'broadcast' })
     } finally {
       setIsSending(false)
