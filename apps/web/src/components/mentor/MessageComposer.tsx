@@ -67,8 +67,6 @@ export default function MessageComposer({ isOpen, onClose, initialRecipients }: 
     
     try {
       const studentIds = recipients.map(r => r.id)
-      
-      const studentIds = recipients.map(r => r.id)
       const contextBlocks = await Promise.all(studentIds.map(async (student_id) => {
          const { data: student } = await supabase.from('profiles').select('full_name, branch, semester').eq('id', student_id).single()
          const { data: attendanceData } = await supabase.rpc('get_attendance_summary', { p_student_id: student_id })
