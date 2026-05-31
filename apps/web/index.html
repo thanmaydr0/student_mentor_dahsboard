@@ -25,9 +25,35 @@
     <meta property="twitter:description" content="AI-powered academic performance tracking and prediction for students and mentors. Discover teser today.">
     
     <title>EduPredict — Academic Intelligence | teser</title>
+    <style>
+      #initial-loader {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8fafc;
+        z-index: 9999;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #cbd5e1;
+        border-top-color: #0f172a;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      @media (prefers-color-scheme: dark) {
+        #initial-loader { background-color: #020617; }
+        .spinner { border-color: #334155; border-top-color: #f8fafc; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="initial-loader"><div class="spinner"></div></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
