@@ -1,19 +1,17 @@
 import { supabase } from '../../lib/supabase';
-import CircuitBreaker from 'opossum';
+import { CircuitBreaker } from '../../utils/CircuitBreaker';
 
 export interface AIService {
   generateResponse(systemPrompt: string, userPrompt: string, temperature?: number): Promise<string>;
 }
 
 export class OpenAIService implements AIService {
-  private breaker: CircuitBreaker;
+  private breaker: CircuitBreaker<[string, string, number?], string>;
 
   constructor() {
-    // Fail circuit if 5 consecutive errors, keep open for 30s
     this.breaker = new CircuitBreaker(this.makeRequest.bind(this), {
-      errorThresholdPercentage: 50, // Not explicitly consecutive but 50% errors trips it
-      resetTimeout: 30000, 
-      volumeThreshold: 5 // Min 5 requests before considering error rates
+      failureThreshold: 5,
+      resetTimeout: 30000 
     });
     
     this.breaker.fallback(() => {

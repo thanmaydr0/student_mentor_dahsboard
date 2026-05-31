@@ -1,18 +1,17 @@
 import { supabase } from '../../lib/supabase';
-import CircuitBreaker from 'opossum';
+import { CircuitBreaker } from '../../utils/CircuitBreaker';
 
 export interface MessagingService {
   sendMessage(toStudentId: string, messageBody: string): Promise<void>;
 }
 
 export class TelegramService implements MessagingService {
-  private breaker: CircuitBreaker;
+  private breaker: CircuitBreaker<[string, string], void>;
 
   constructor() {
     this.breaker = new CircuitBreaker(this.makeRequest.bind(this), {
-      errorThresholdPercentage: 50,
-      resetTimeout: 30000, 
-      volumeThreshold: 5 
+      failureThreshold: 5,
+      resetTimeout: 30000 
     });
     
     this.breaker.fallback(() => {
