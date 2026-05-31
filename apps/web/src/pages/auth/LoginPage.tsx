@@ -72,7 +72,7 @@ export default function LoginPage() {
               <GraduationCap size={24} className="text-white" strokeWidth={1.8} />
             </div>
             <h1 className="text-xl font-semibold text-brand-900 dark:text-white">
-              Edu<span className="text-brand-600 dark:text-amber-400">Predict</span>
+              Edu<span className="text-brand-600 dark:text-amber-400">Predict</span> <span className="text-sm font-normal text-brand-400">by teser</span>
             </h1>
             <p className="text-sm text-brand-400 dark:text-slate-400">Sign in to your account</p>
           </div>
@@ -119,7 +119,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-brand-300 dark:text-slate-500">
-          © {new Date().getFullYear()} EduPredict · Academic Intelligence
+          © {new Date().getFullYear()} EduPredict by teser · Academic Intelligence
         </p>
       </motion.div>
     </div>
