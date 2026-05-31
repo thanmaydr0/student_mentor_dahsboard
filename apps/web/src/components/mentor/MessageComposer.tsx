@@ -43,6 +43,7 @@ export default function MessageComposer({ isOpen, onClose, initialRecipients }: 
   const [tone, setTone] = useState<Tone>('formal')
   
   const [isGenerating, setIsGenerating] = useState(false)
+  const [cooldown, setCooldown] = useState(0) // 30s cooldown after generation
   const [messages, setMessages] = useState<GeneratedMessage[]>([])
   
   const [activeTabIdx, setActiveTabIdx] = useState(0)
@@ -57,6 +58,7 @@ export default function MessageComposer({ isOpen, onClose, initialRecipients }: 
       setChannel('email')
       setTone('formal')
       setActiveTabIdx(0)
+      setCooldown(0)
     }
   }, [isOpen, initialRecipients])
 
@@ -143,6 +145,16 @@ Most Recenet Intervention Found: ${recentIntervention}`
       toast.error("Failed to generate messages correctly.")
     } finally {
       setIsGenerating(false)
+      setCooldown(30)
+      const timer = setInterval(() => {
+        setCooldown(c => {
+          if (c <= 1) {
+            clearInterval(timer)
+            return 0
+          }
+          return c - 1
+        })
+      }, 1000)
     }
   }
 
@@ -338,10 +350,12 @@ Most Recenet Intervention Found: ${recentIntervention}`
                </div>
                <button 
                   onClick={handleGenerate}
-                  disabled={isGenerating || recipients.length === 0}
+                  disabled={isGenerating || recipients.length === 0 || cooldown > 0}
                   className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-sm transition"
                >
-                 {isGenerating ? <><RefreshCw size={16} className="animate-spin" /> Fetching Contexts...</> : <><Sparkles size={16} /> Draft Messages</>}
+                 {isGenerating ? <><RefreshCw size={16} className="animate-spin" /> Fetching Contexts...</> : 
+                  cooldown > 0 ? <><Sparkles size={16} /> Cooldown ({cooldown}s)</> : 
+                  <><Sparkles size={16} /> Draft Messages</>}
                </button>
              </div>
            </div>

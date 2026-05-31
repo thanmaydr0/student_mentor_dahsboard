@@ -1,11 +1,26 @@
 import { supabase } from '../../lib/supabase';
+import CircuitBreaker from 'opossum';
 
 export interface MessagingService {
   sendMessage(toStudentId: string, messageBody: string): Promise<void>;
 }
 
 export class TelegramService implements MessagingService {
-  async sendMessage(toStudentId: string, messageBody: string): Promise<void> {
+  private breaker: CircuitBreaker;
+
+  constructor() {
+    this.breaker = new CircuitBreaker(this.makeRequest.bind(this), {
+      errorThresholdPercentage: 50,
+      resetTimeout: 30000, 
+      volumeThreshold: 5 
+    });
+    
+    this.breaker.fallback(() => {
+      throw new Error("Telegram API is currently overloaded or down. Please try again later.");
+    });
+  }
+
+  private async makeRequest(toStudentId: string, messageBody: string): Promise<void> {
     const { error } = await supabase.functions.invoke('telegram-bot', {
       body: {
         action: 'send_message',
@@ -18,6 +33,10 @@ export class TelegramService implements MessagingService {
       console.error(`Failed to send telegram message to ${toStudentId}`, error);
       throw error;
     }
+  }
+
+  async sendMessage(toStudentId: string, messageBody: string): Promise<void> {
+    return this.breaker.fire(toStudentId, messageBody) as Promise<void>;
   }
 }
 
