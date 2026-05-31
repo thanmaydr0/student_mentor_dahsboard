@@ -4,9 +4,14 @@ import {
   X, Sparkles, MessageSquare, Mail, FileText, Smartphone,
   RefreshCw, Check, Copy, CheckCircle2, ChevronDown, UserPlus, Info
 } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import { cn } from '../../lib/utils'
+
+// Services Abstraction Layer
+import { profileService, attendanceService, gradesService, authService } from '../../services/api/Repositories'
+import { interventionService } from '../../services/api/InterventionService'
+import { aiService } from '../../services/external/OpenAIService'
+import { telegramService } from '../../services/external/TelegramService'
 
 interface Recipient {
   id: string
@@ -68,10 +73,10 @@ export default function MessageComposer({ isOpen, onClose, initialRecipients }: 
     try {
       const studentIds = recipients.map(r => r.id)
       const contextBlocks = await Promise.all(studentIds.map(async (student_id) => {
-         const { data: student } = await supabase.from('profiles').select('full_name, branch, semester').eq('id', student_id).single()
-         const { data: attendanceData } = await supabase.rpc('get_attendance_summary', { p_student_id: student_id })
-         const { data: gradesData } = await supabase.from('grades').select('*, classes(subjects(name))').eq('student_id', student_id)
-         const { data: interventions } = await supabase.from('interventions').select('*').eq('student_id', student_id).order('created_at', { ascending: false }).limit(1)
+         const student = await profileService.getStudentInfo(student_id);
+         const attendanceData = await attendanceService.getSummary(student_id);
+         const gradesData = await gradesService.getGradesWithSubjects(student_id);
+         const interventions = await interventionService.getByStudentId(student_id);
 
          const attendanceText = attendanceData?.map((a: any) => 
            `${a.subject_name}: ${a.percentage}% (${a.present_count}/${a.total_count})`
@@ -124,20 +129,7 @@ Most Recenet Intervention Found: ${recentIntervention}`
       ALL TARGETED STUDENT CONTEXTS:
       ${globalContext}`
 
-      const { data: openaiData, error: proxyError } = await supabase.functions.invoke('openai-proxy', {
-        body: {
-          model: 'gpt-4o-mini',
-          temperature: 0.4,
-          messages: [
-             { role: 'system', content: systemPrompt },
-             { role: 'user', content: userPrompt + '\n\nEnclose your output array in a JSON object using the key "messages", like: { "messages": [ ... ] }' }
-          ]
-        }
-      })
-
-      if (proxyError) throw new Error(`Proxy Error: ${proxyError.message}`)
-
-      const rawContent = openaiData?.choices?.[0]?.message?.content
+      const rawContent = await aiService.generateResponse(systemPrompt, userPrompt + '\n\nEnclose your output array in a JSON object using the key "messages", like: { "messages": [ ... ] }', 0.4);
       const parsedJson = JSON.parse(rawContent)
       const data = parsedJson.messages || parsedJson
 
@@ -158,9 +150,9 @@ Most Recenet Intervention Found: ${recentIntervention}`
     const toastId = toast.loading("Regenerating targeted message...")
     try {
 
-      const { data: student } = await supabase.from('profiles').select('full_name, branch, semester').eq('id', studentId).single()
-      const { data: attendanceData } = await supabase.rpc('get_attendance_summary', { p_student_id: studentId })
-      const { data: gradesData } = await supabase.from('grades').select('*, classes(subjects(name))').eq('student_id', studentId)
+      const student = await profileService.getStudentInfo(studentId);
+      const attendanceData = await attendanceService.getSummary(studentId);
+      const gradesData = await gradesService.getGradesWithSubjects(studentId);
       
       const attendanceText = attendanceData?.map((a: any) => `${a.subject_name}: ${a.percentage}%`).join(' | ') || 'No attendance records'
       const gradesText = gradesData?.map((g: any) => `${(g.classes as any)?.subjects?.name}: ${g.total_score}/100`).join(' | ') || 'No grades data'
@@ -169,17 +161,8 @@ Most Recenet Intervention Found: ${recentIntervention}`
 
       const systemPrompt = `You are an Academic Advisor. Write a ${goal.replace('_', ' ')} via ${channel.toUpperCase()} with a ${tone.toUpperCase()} tone. Return JSON: { "messages": [ { "student_id": "${studentId}", "subject_line": "...", "body": "...", "personalization_notes": "..." } ] }`
 
-      const { data: openaiData, error: proxyError } = await supabase.functions.invoke('openai-proxy', {
-        body: {
-          model: 'gpt-4o-mini', 
-          temperature: 0.5, 
-          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: context }]
-        }
-      })
-
-      if (proxyError) throw new Error(`Proxy Error: ${proxyError.message}`)
-      
-      const parsedJson = JSON.parse(openaiData.choices[0].message.content)
+      const rawContent = await aiService.generateResponse(systemPrompt, context, 0.5);
+      const parsedJson = JSON.parse(rawContent)
       const data = parsedJson.messages || parsedJson
 
       if (data && data[0]) {
@@ -220,17 +203,21 @@ Most Recenet Intervention Found: ${recentIntervention}`
   const handleDone = async () => {
     // If enabled, log interventions for these exact drafted items
     if (logAsIntervention && messages.length > 0) {
-       const { data: { user } } = await supabase.auth.getUser()
-       if (user) {
-         const insertPayload = messages.map(m => ({
-            student_id: m.student_id, 
-            mentor_id: user.id, 
-            type: 'Message', 
-            notes: `AI Composed [${channel}]:\n${m.body}`, 
-            date: new Date().toISOString().split('T')[0]
-         }))
-         await supabase.from('interventions').insert(insertPayload)
-         toast.success("Interventions automatically logged!")
+       try {
+         const user = await authService.getCurrentUser()
+         if (user) {
+           const insertPayload = messages.map(m => ({
+              student_id: m.student_id, 
+              mentor_id: user.id, 
+              type: 'Message', 
+              notes: `AI Composed [${channel}]:\n${m.body}`, 
+              date: new Date().toISOString().split('T')[0]
+           }))
+           await interventionService.bulkCreate(insertPayload)
+           toast.success("Interventions automatically logged!")
+         }
+       } catch (err) {
+         console.error("Failed to log interventions", err)
        }
     }
 
@@ -238,13 +225,10 @@ Most Recenet Intervention Found: ${recentIntervention}`
     if (channel === 'telegram' && messages.length > 0) {
        const sendPromises = messages.map(async m => {
           try {
-             await supabase.functions.invoke('telegram-bot', {
-                body: {
-                   action: 'send_message',
-                   to_student_id: m.student_id,
-                   message_body: `📢 <b>Message from Mentor:</b>\n\n${m.subject_line ? `<b>${m.subject_line}</b>\n\n` : ''}${m.body}`
-                }
-             })
+             await telegramService.sendMessage(
+                m.student_id,
+                `📢 <b>Message from Mentor:</b>\n\n${m.subject_line ? `<b>${m.subject_line}</b>\n\n` : ''}${m.body}`
+             );
           } catch(e) { console.error('Failed to send telegram message to', m.student_id, e) }
        });
        await Promise.all(sendPromises);
