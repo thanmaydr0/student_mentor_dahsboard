@@ -90,9 +90,6 @@ export default function ReportGenerator({ studentId, isOpen, onClose }: ReportGe
     setProgress(10)
     
     try {
-      // Client-side fetch bridging to bypass undeployed Edge Functions cleanly 
-      const openAiKey = import.meta.env.VITE_OPENAI_API_KEY
-      if (!openAiKey) throw new Error('Proxy mode failed: VITE_OPENAI_API_KEY is missing.')
 
       // Fetch requisite data manually
       const [attRes, gradesRes, profileRes] = await Promise.all([
@@ -136,26 +133,19 @@ export default function ReportGenerator({ studentId, isOpen, onClose }: ReportGe
       Attendance: ${attendanceContext}
       Grades: ${gradesContext}`
 
-      const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-           'Content-Type': 'application/json',
-           'Authorization': `Bearer ${openAiKey}`,
-        },
-        body: JSON.stringify({
+      const { data: openaiData, error: proxyError } = await supabase.functions.invoke('openai-proxy', {
+        body: {
            model: 'gpt-4o-mini',
            temperature: 0.2,
-           response_format: { type: 'json_object' },
            messages: [
              { role: 'system', content: systemPrompt },
              { role: 'user', content: userPrompt }
            ]
-        })
+        }
       })
 
-      if (!openaiRes.ok) throw new Error("AI engine failed securely limits.")
+      if (proxyError) throw new Error(`AI engine failed securely limits. ${proxyError.message}`)
 
-      const openaiData = await openaiRes.json()
       const rawReport = JSON.parse(openaiData.choices[0].message.content)
       
       const payload = { report: rawReport, report_type: selectedType, student_id: studentId }
@@ -172,7 +162,7 @@ export default function ReportGenerator({ studentId, isOpen, onClose }: ReportGe
 
     } catch (err: any) {
       console.warn("Generation failed:", err.message)
-      toast.error("Failed to generate report correctly. Ensure VITE_OPENAI_API_KEY is configured!")
+      toast.error("Failed to generate report correctly.")
       setStep('SELECT')
     }
   }

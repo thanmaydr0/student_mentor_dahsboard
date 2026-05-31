@@ -473,6 +473,17 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) return new Response(JSON.stringify({ ok: false, message: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+    
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.3')
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    )
+    const { data: { user }, error: authErr } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''))
+    if (authErr || !user) return new Response(JSON.stringify({ ok: false, message: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+
     const { usn, captcha, resultUrl } = await req.json()
 
     if (!usn || typeof usn !== 'string') {

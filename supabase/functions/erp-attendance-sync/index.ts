@@ -59,9 +59,7 @@ Deno.serve(async (req) => {
 
     // Get ERP credentials for those students
     const { data: credentials, error: credErr } = await supabaseClient
-      .from('erp_credentials')
-      .select('student_id, username, password')
-      .in('student_id', studentIds)
+      .rpc('get_decrypted_erp_credentials', { p_student_ids: studentIds })
 
     if (credErr || !credentials || credentials.length === 0) {
       return new Response(JSON.stringify({ message: 'No ERP credentials found for your students. Ask them to update their profile.' }), {

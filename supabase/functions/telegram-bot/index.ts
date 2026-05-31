@@ -281,6 +281,12 @@ serve(async (req) => {
     
     // Handle external API call to send a message via /broadcast or direct route
     if (update.action === 'send_message') {
+       const authHeader = req.headers.get('Authorization')
+       if (!authHeader) return new Response('Unauthorized', { status: 401 })
+       
+       const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+       if (!user) return new Response('Unauthorized', { status: 401 })
+
        const { to_student_id, message_body } = update;
        // Find the parent's connected telegram session
        const { data: sessions } = await supabase.from('telegram_sessions')

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight, Trash2, ArrowUp, Zap } from 'lucide-react'
 import { useCohortChat } from '../../hooks/mentor/useCohortChat'
 import { cn } from '../../lib/utils'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface CohortChatPanelProps {
   isOpen: boolean
@@ -162,8 +164,10 @@ export default function CohortChatPanel({ isOpen, onClose }: CohortChatPanelProp
                               : "bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700/50"
                           )}
                         >
-                          <div className={cn("whitespace-pre-wrap", !isUser && "text-slate-300 font-light")}>
-                            {mainText}
+                          <div className={cn("whitespace-pre-wrap leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0 [&_a]:text-blue-400 hover:[&_a]:underline [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4", !isUser && "text-slate-300 font-light")}>
+                            {isUser ? mainText : (
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{mainText}</ReactMarkdown>
+                            )}
                             {msg.isStreaming && (
                               <span className="inline-block w-1.5 h-4 ml-1 bg-brand-400 align-middle animate-[pulse_0.75s_infinite]" />
                             )}

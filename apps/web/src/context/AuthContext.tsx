@@ -13,7 +13,7 @@ export interface AuthContextValue {
   signUp: (
     email: string,
     password: string,
-    metadata: { full_name: string; role: string; branch: string; semester: number }
+    metadata: { full_name: string; branch: string; semester: number }
   ) => Promise<void>
   signOut: () => Promise<void>
 }
@@ -150,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (
       email: string,
       password: string,
-      metadata: { full_name: string; role: string; branch: string; semester: number }
+      metadata: { full_name: string; branch: string; semester: number }
     ) => {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -164,7 +164,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error: rpcError } = await supabase.rpc('create_profile', {
           p_user_id: data.user.id,
           p_full_name: metadata.full_name,
-          p_role: metadata.role,
           p_branch: metadata.branch,
           p_semester: metadata.semester,
         })

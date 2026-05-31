@@ -50,9 +50,7 @@ Deno.serve(async (req) => {
     // --- ACTUAL SCRAPING LOGIC (if credentials exist) ---
     // Get ERP credentials for student
     const { data: credentials } = await supabaseClient
-      .from('erp_credentials')
-      .select('username, password')
-      .eq('student_id', user.id)
+      .rpc('get_decrypted_erp_credentials', { p_student_ids: [user.id] })
       .single()
 
     if (!credentials) {

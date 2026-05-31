@@ -68,10 +68,7 @@ export default function MessageComposer({ isOpen, onClose, initialRecipients }: 
     try {
       const studentIds = recipients.map(r => r.id)
       
-      const openAiKey = import.meta.env.VITE_OPENAI_API_KEY
-      if (!openAiKey) throw new Error('Proxy mode failed: VITE_OPENAI_API_KEY is missing.')
-
-      // Concurrently fetch rich explict nested context blocks for each student targeted.
+      const studentIds = recipients.map(r => r.id)
       const contextBlocks = await Promise.all(studentIds.map(async (student_id) => {
          const { data: student } = await supabase.from('profiles').select('full_name, branch, semester').eq('id', student_id).single()
          const { data: attendanceData } = await supabase.rpc('get_attendance_summary', { p_student_id: student_id })
@@ -129,24 +126,20 @@ Most Recenet Intervention Found: ${recentIntervention}`
       ALL TARGETED STUDENT CONTEXTS:
       ${globalContext}`
 
-      const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openAiKey}` },
-        body: JSON.stringify({
+      const { data: openaiData, error: proxyError } = await supabase.functions.invoke('openai-proxy', {
+        body: {
           model: 'gpt-4o-mini',
           temperature: 0.4,
-          response_format: { type: 'json_object' },
           messages: [
              { role: 'system', content: systemPrompt },
              { role: 'user', content: userPrompt + '\n\nEnclose your output array in a JSON object using the key "messages", like: { "messages": [ ... ] }' }
           ]
-        })
+        }
       })
 
-      if (!openaiRes.ok) throw new Error("OpenAI Request Failed")
+      if (proxyError) throw new Error(`Proxy Error: ${proxyError.message}`)
 
-      const openaiData = await openaiRes.json()
-      const rawContent = openaiData.choices?.[0]?.message?.content
+      const rawContent = openaiData?.choices?.[0]?.message?.content
       const parsedJson = JSON.parse(rawContent)
       const data = parsedJson.messages || parsedJson
 
@@ -157,7 +150,7 @@ Most Recenet Intervention Found: ${recentIntervention}`
       toast.success("Messages generated successfully!")
     } catch(err) {
       console.warn("Generating message failed.", err)
-      toast.error("Failed to generate messages correctly. Check VITE_OPENAI_API_KEY.")
+      toast.error("Failed to generate messages correctly.")
     } finally {
       setIsGenerating(false)
     }
@@ -166,8 +159,6 @@ Most Recenet Intervention Found: ${recentIntervention}`
   const handleRegenerateOne = async (studentId: string) => {
     const toastId = toast.loading("Regenerating targeted message...")
     try {
-      const openAiKey = import.meta.env.VITE_OPENAI_API_KEY
-      if (!openAiKey) throw new Error('VITE_OPENAI_API_KEY is missing.')
 
       const { data: student } = await supabase.from('profiles').select('full_name, branch, semester').eq('id', studentId).single()
       const { data: attendanceData } = await supabase.rpc('get_attendance_summary', { p_student_id: studentId })
@@ -180,18 +171,16 @@ Most Recenet Intervention Found: ${recentIntervention}`
 
       const systemPrompt = `You are an Academic Advisor. Write a ${goal.replace('_', ' ')} via ${channel.toUpperCase()} with a ${tone.toUpperCase()} tone. Return JSON: { "messages": [ { "student_id": "${studentId}", "subject_line": "...", "body": "...", "personalization_notes": "..." } ] }`
 
-      const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openAiKey}` },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini', temperature: 0.5, response_format: { type: 'json_object' },
+      const { data: openaiData, error: proxyError } = await supabase.functions.invoke('openai-proxy', {
+        body: {
+          model: 'gpt-4o-mini', 
+          temperature: 0.5, 
           messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: context }]
-        })
+        }
       })
 
-      if (!openaiRes.ok) throw new Error("OpenAI Request Failed")
+      if (proxyError) throw new Error(`Proxy Error: ${proxyError.message}`)
       
-      const openaiData = await openaiRes.json()
       const parsedJson = JSON.parse(openaiData.choices[0].message.content)
       const data = parsedJson.messages || parsedJson
 
@@ -233,29 +222,30 @@ Most Recenet Intervention Found: ${recentIntervention}`
   const handleDone = async () => {
     // If enabled, log interventions for these exact drafted items
     if (logAsIntervention && messages.length > 0) {
-       const promises = messages.map(async m => {
-          const { data: { user } } = await supabase.auth.getUser()
-          if (!user) return
-          await supabase.from('interventions').insert({
-            student_id: m.student_id, mentor_id: user.id, type: 'Message', notes: `AI Composed [${channel}]:\n${m.body}`, date: new Date().toISOString().split('T')[0]
-          })
-       })
-       await Promise.all(promises)
-       toast.success("Interventions automatically logged!")
+       const { data: { user } } = await supabase.auth.getUser()
+       if (user) {
+         const insertPayload = messages.map(m => ({
+            student_id: m.student_id, 
+            mentor_id: user.id, 
+            type: 'Message', 
+            notes: `AI Composed [${channel}]:\n${m.body}`, 
+            date: new Date().toISOString().split('T')[0]
+         }))
+         await supabase.from('interventions').insert(insertPayload)
+         toast.success("Interventions automatically logged!")
+       }
     }
 
     // Send Telegram messages if selected
     if (channel === 'telegram' && messages.length > 0) {
        const sendPromises = messages.map(async m => {
           try {
-             await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/telegram-bot`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+             await supabase.functions.invoke('telegram-bot', {
+                body: {
                    action: 'send_message',
                    to_student_id: m.student_id,
                    message_body: `📢 <b>Message from Mentor:</b>\n\n${m.subject_line ? `<b>${m.subject_line}</b>\n\n` : ''}${m.body}`
-                })
+                }
              })
           } catch(e) { console.error('Failed to send telegram message to', m.student_id, e) }
        });

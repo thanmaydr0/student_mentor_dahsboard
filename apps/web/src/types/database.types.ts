@@ -117,6 +117,7 @@ export interface Database {
           class_id: string
           status: 'Present' | 'Absent' | 'Excused'
           date: string
+          mentor_id: string
           created_at: string
         }
         Insert: {
@@ -125,6 +126,7 @@ export interface Database {
           class_id: string
           status: 'Present' | 'Absent' | 'Excused'
           date: string
+          mentor_id: string
           created_at?: string
         }
         Update: {
@@ -133,6 +135,7 @@ export interface Database {
           class_id?: string
           status?: 'Present' | 'Absent' | 'Excused'
           date?: string
+          mentor_id?: string
           created_at?: string
         }
       }
@@ -145,6 +148,7 @@ export interface Database {
           external_marks: number
           total_score: number
           grade: string
+          mentor_id: string
           updated_at: string
           created_at: string
         }
@@ -156,6 +160,7 @@ export interface Database {
           external_marks: number
           total_score?: number
           grade?: string
+          mentor_id: string
           updated_at?: string
           created_at?: string
         }
@@ -167,6 +172,7 @@ export interface Database {
           external_marks?: number
           total_score?: number
           grade?: string
+          mentor_id?: string
           updated_at?: string
           created_at?: string
         }

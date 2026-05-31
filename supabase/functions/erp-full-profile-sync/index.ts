@@ -194,9 +194,7 @@ Deno.serve(async (req) => {
 
     // Get ERP credentials
     const { data: cred } = await supabaseClient
-      .from('erp_credentials')
-      .select('username, password')
-      .eq('student_id', student_id)
+      .rpc('get_decrypted_erp_credentials', { p_student_ids: [student_id] })
       .single()
 
     if (!cred) throw new Error('Student has not entered their ERP credentials.')

@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { X, Send, Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '../../lib/utils'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface DirectChatProps {
   isOpen: boolean
@@ -573,7 +575,9 @@ export default function DirectChat({ isOpen, onClose, currentUserId, peerId, pee
                       {msg.content_type === 'audio' ? (
                         <audio controls src={msg.content_url_or_text} className="h-8 max-w-full" />
                       ) : (
-                        <p className="whitespace-pre-wrap leading-relaxed">{msg.content_url_or_text}</p>
+                        <div className="whitespace-pre-wrap leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0 [&_a]:text-blue-500 hover:[&_a]:underline [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4">
+                           <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content_url_or_text}</ReactMarkdown>
+                        </div>
                       )}
                     </div>
                   </div>

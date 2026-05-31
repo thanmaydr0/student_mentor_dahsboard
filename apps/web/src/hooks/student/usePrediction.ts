@@ -76,34 +76,21 @@ Additional flags:
 
 Analyze this data and return the prediction JSON.`
 
-        const openAiKey = import.meta.env.VITE_OPENAI_API_KEY
-        if (!openAiKey) throw new Error('Proxy mode failed: VITE_OPENAI_API_KEY is missing.')
-
-        const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openAiKey}`,
-          },
-          body: JSON.stringify({
+        const { data: openaiData, error: proxyError } = await supabase.functions.invoke('openai-proxy', {
+          body: {
             model: 'gpt-4o-mini',
             max_tokens: 500,
             temperature: 0.2,
-            response_format: { type: 'json_object' },
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
             ]
-          })
+          }
         })
 
-        if (!openaiRes.ok) {
-           const text = await openaiRes.text()
-           throw new Error(`OpenAI fetch error: ${text}`)
-        }
+        if (proxyError) throw new Error(`Proxy Error: ${proxyError.message}`)
 
-        const openaiData = await openaiRes.json()
-        const rawContent = openaiData.choices?.[0]?.message?.content
+        const rawContent = openaiData?.choices?.[0]?.message?.content
         if (!rawContent) throw new Error('Empty response')
 
         const prediction = JSON.parse(rawContent)
