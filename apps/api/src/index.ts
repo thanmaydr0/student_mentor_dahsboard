@@ -42,6 +42,45 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'EduPredict Backend API is running' });
 });
 
+// Secure OpenAI Proxy Route
+app.post('/api/ai/generate', async (req, res) => {
+  const { systemPrompt, userPrompt, temperature } = req.body;
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: 'OpenAI API key not configured on server' });
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        temperature: temperature || 0.5,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return res.status(response.status).json({ error: errorData.error?.message || 'OpenAI Error' });
+    }
+
+    const data = await response.json();
+    res.json({ content: data.choices?.[0]?.message?.content || '' });
+  } catch (error: any) {
+    console.error('OpenAI Proxy Error:', error);
+    res.status(500).json({ error: 'Failed to contact OpenAI' });
+  }
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

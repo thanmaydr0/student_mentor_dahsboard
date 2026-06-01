@@ -20,22 +20,27 @@ export class OpenAIService implements AIService {
   }
 
   private async makeRequest(systemPrompt: string, userPrompt: string, temperature: number = 0.5): Promise<string> {
-    const { data, error } = await supabase.functions.invoke('openai-proxy', {
-      body: {
-        model: 'gpt-4o-mini',
-        temperature,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ]
-      }
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+    
+    const response = await fetch(`${apiUrl}/api/ai/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        systemPrompt,
+        userPrompt,
+        temperature
+      })
     });
 
-    if (error) {
-      throw new Error(`Proxy Error: ${error.message}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Proxy Error: ${errorData.error || response.statusText}`);
     }
 
-    return data?.choices?.[0]?.message?.content || '';
+    const data = await response.json();
+    return data.content || '';
   }
 
   async generateResponse(systemPrompt: string, userPrompt: string, temperature: number = 0.5): Promise<string> {
