@@ -33,8 +33,8 @@ app.use(cors());
 app.use(express.json());
 app.use(apiLimiter);
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy';
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 // Basic Health Check
