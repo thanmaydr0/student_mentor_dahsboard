@@ -38,6 +38,8 @@ const AcademicGPSPage = lazy(() => import('./pages/parent/AcademicGPSPage'))
 const CareerRadarPage = lazy(() => import('./pages/parent/CareerRadarPage'))
 const MentorConnectPage = lazy(() => import('./pages/parent/MentorConnectPage'))
 const SmartDeadlinesPage = lazy(() => import('./pages/parent/SmartDeadlinesPage'))
+const ResourceRequestsPage = lazy(() => import('./pages/ResourceRequestsPage'))
+const RewardsHubPage = lazy(() => import('./pages/student/RewardsHubPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 const queryClient = new QueryClient({
@@ -86,6 +88,8 @@ export default function App() {
                   <Route path="/student/career" element={<CareerAssistancePage />} />
                   <Route path="/student/unstop-matches" element={<UnstopMatchesPage />} />
                   <Route path="/student/fees" element={<FeePaymentPage />} />
+                  <Route path="/student/peer-resources" element={<ResourceRequestsPage />} />
+                  <Route path="/student/rewards" element={<RewardsHubPage />} />
                 </Route>
 
                 {/* Mentor routes */}

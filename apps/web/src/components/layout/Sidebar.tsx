@@ -55,6 +55,8 @@ const studentNav: NavItem[] = [
   { label: 'Timetable', path: '/student/timetable', icon: Calendar },
   { label: 'Fee Payments', path: '/student/fees', icon: CreditCard },
   { label: 'Resource Library', path: '/student/library', icon: Library },
+  { label: 'Peer Resources', path: '/student/peer-resources', icon: Users },
+  { label: 'Rewards Hub', path: '/student/rewards', icon: Trophy },
   { label: 'Notifications', path: '/student/notifications', icon: Bell, badge: true },
   { label: 'Profile', path: '/profile', icon: UserCircle },
 ]

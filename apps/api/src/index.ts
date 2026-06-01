@@ -44,14 +44,30 @@ app.get('/health', (req, res) => {
 
 // Secure OpenAI Proxy Route
 app.post('/api/ai/generate', async (req, res) => {
-  const { systemPrompt, userPrompt, temperature } = req.body;
+  const { systemPrompt, userPrompt, temperature, userId } = req.body;
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
     return res.status(500).json({ error: 'OpenAI API key not configured on server' });
   }
 
+  let aiModel = 'gpt-4o-mini'; // Default free tier model
+
   try {
+    // Securely verify Premium status using Supabase Admin
+    if (userId) {
+      const { data } = await supabaseAdmin
+        .from('user_subscriptions')
+        .select('is_premium, premium_until')
+        .eq('user_id', userId)
+        .single();
+
+      if (data?.is_premium) {
+        // Upgrade to the heavy-duty model!
+        aiModel = 'gpt-4o';
+      }
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -59,7 +75,7 @@ app.post('/api/ai/generate', async (req, res) => {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: aiModel,
         temperature: temperature || 0.5,
         messages: [
           { role: 'system', content: systemPrompt },

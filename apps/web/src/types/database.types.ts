@@ -360,6 +360,72 @@ export interface Database {
           created_at?: string
         }
       }
+      user_wallets: {
+        Row: {
+          id: string
+          user_id: string
+          balance: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          balance?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          balance?: number
+          created_at?: string
+        }
+      }
+      token_transactions: {
+        Row: {
+          id: string
+          wallet_id: string
+          amount: number
+          transaction_type: 'earned' | 'spent'
+          description: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wallet_id: string
+          amount: number
+          transaction_type: 'earned' | 'spent'
+          description: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          wallet_id?: string
+          amount?: number
+          transaction_type?: 'earned' | 'spent'
+          description?: string
+          created_at?: string
+        }
+      }
+      user_subscriptions: {
+        Row: {
+          user_id: string
+          is_premium: boolean
+          premium_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          is_premium?: boolean
+          premium_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          is_premium?: boolean
+          premium_until?: string | null
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

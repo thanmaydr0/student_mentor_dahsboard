@@ -22,6 +22,10 @@ export class OpenAIService implements AIService {
   private async makeRequest(systemPrompt: string, userPrompt: string, temperature: number = 0.5): Promise<string> {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
     
+    // Get the current user session from Supabase
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+
     const response = await fetch(`${apiUrl}/api/ai/generate`, {
       method: 'POST',
       headers: {
@@ -30,7 +34,8 @@ export class OpenAIService implements AIService {
       body: JSON.stringify({
         systemPrompt,
         userPrompt,
-        temperature
+        temperature,
+        userId
       })
     });
 

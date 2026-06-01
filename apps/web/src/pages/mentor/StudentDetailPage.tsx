@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ArrowLeft, Plus, Calendar, Edit2, Check, X, 
-  MessageSquare, UserPlus, FileText, AlertTriangle 
+  MessageSquare, UserPlus, FileText, AlertTriangle, Coins
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
@@ -68,6 +68,11 @@ export default function StudentDetailPage() {
   const [showMessageComposer, setShowMessageComposer] = useState(false)
   const [showParentChat, setShowParentChat] = useState(false)
   const [parentId, setParentId] = useState<string | null>(null)
+
+  const [showAwardModal, setShowAwardModal] = useState(false)
+  const [awardAmount, setAwardAmount] = useState(50)
+  const [awardReason, setAwardReason] = useState('Top IAT Marks')
+  const [isAwarding, setIsAwarding] = useState(false)
 
   // Access Control: Redirect if the student is not assigned to this mentor
   useEffect(() => {
@@ -139,6 +144,25 @@ export default function StudentDetailPage() {
     setIntNotes('') // reset for next time
   }
 
+  // Award Tokens Handler
+  const handleAwardTokens = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!id) return
+    setIsAwarding(true)
+    const { data, error } = await supabase.rpc('mentor_award_tokens', {
+      p_student_id: id,
+      p_amount: awardAmount,
+      p_reason: awardReason
+    })
+    setIsAwarding(false)
+    if (error || !data?.success) {
+      toast.error('Failed to award tokens.')
+    } else {
+      toast.success(`${awardAmount} TSR awarded successfully!`)
+      setShowAwardModal(false)
+    }
+  }
+
   // Loading / Error
   if (detailLoading) {
     return (
@@ -205,6 +229,13 @@ export default function StudentDetailPage() {
                   Message
                 </button>
               </div>
+
+              <button 
+                onClick={() => setShowAwardModal(true)} 
+                className="flex items-center gap-1.5 text-sm font-bold text-amber-700 border border-amber-200 px-3 py-1 bg-amber-50 hover:bg-amber-100 rounded-lg shadow-sm transition-colors"
+              >
+                <Coins size={16} className="text-amber-500" /> Award TSR
+              </button>
 
               <button 
                 onClick={async () => {
@@ -430,6 +461,47 @@ export default function StudentDetailPage() {
                 <div className="pt-2 flex gap-3">
                   <button type="button" onClick={() => setShowInterventionModal(false)} className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-semibold hover:bg-slate-50 transition">Cancel</button>
                   <button type="submit" disabled={addInterventionMutation.isPending} className="flex-1 px-4 py-2.5 bg-brand-600 text-white rounded-xl font-semibold hover:bg-brand-700 transition disabled:opacity-50">Save Log</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Award Tokens Modal */}
+      <AnimatePresence>
+        {showAwardModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-amber-50">
+                <div className="flex items-center gap-2">
+                  <Coins className="text-amber-500" />
+                  <h3 className="text-lg font-bold text-amber-900">Award TeserCoins</h3>
+                </div>
+                <button onClick={() => setShowAwardModal(false)} className="text-amber-700 hover:text-amber-900"><X size={20}/></button>
+              </div>
+              <form onSubmit={handleAwardTokens} className="p-6 space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Amount (TSR)</label>
+                  <input type="number" required min="1" max="500" value={awardAmount} onChange={(e) => setAwardAmount(Number(e.target.value))} className="w-full rounded-xl border-slate-200 py-2.5 text-sm focus:ring-amber-500 focus:border-amber-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Reason</label>
+                  <select value={awardReason} onChange={(e) => setAwardReason(e.target.value)} className="w-full rounded-xl border-slate-200 py-2.5 text-sm focus:ring-amber-500 focus:border-amber-500">
+                    <option value="Top IAT Marks">Top IAT Marks</option>
+                    <option value="Perfect Attendance">Perfect Attendance</option>
+                    <option value="Exceptional Improvement">Exceptional Improvement</option>
+                    <option value="Helping Classmates">Helping Classmates</option>
+                  </select>
+                </div>
+                <div className="pt-2 flex gap-3">
+                  <button type="button" onClick={() => setShowAwardModal(false)} className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-semibold hover:bg-slate-50 transition">Cancel</button>
+                  <button type="submit" disabled={isAwarding} className="flex-1 px-4 py-2.5 bg-amber-500 text-amber-950 rounded-xl font-bold hover:bg-amber-400 transition disabled:opacity-50">Send {awardAmount} TSR</button>
                 </div>
               </form>
             </motion.div>
