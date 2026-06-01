@@ -14,13 +14,18 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
     "@types/node": "^24.12.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express-rate-limit": "^8.5.2",
+    "node-fetch": "^2.7.0",
+    "pg-boss": "^9.0.3",
     "redis": "^6.0.0"
   }
 }
