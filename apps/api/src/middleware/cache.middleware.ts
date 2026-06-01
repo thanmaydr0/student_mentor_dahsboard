@@ -23,7 +23,7 @@ export const cacheMiddleware = (durationSeconds: number) => {
     try {
       const cachedResponse = await redisClient.get(key);
       if (cachedResponse) {
-        return res.json(JSON.parse(cachedResponse));
+        return res.json(JSON.parse(cachedResponse as string));
       } else {
         // Intercept response.send to cache it
         const originalSend = res.send.bind(res);
