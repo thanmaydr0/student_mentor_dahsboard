@@ -28,8 +28,9 @@ export const cacheMiddleware = (durationSeconds: number) => {
         // Intercept response.send to cache it
         const originalSend = res.send.bind(res);
         res.send = (body: any) => {
-          // Cache the response
-          redisClient.setEx(key, durationSeconds, body).catch(console.error);
+          // Cache the response as a string
+          const stringBody = typeof body === 'string' ? body : JSON.stringify(body);
+          redisClient.setEx(key, durationSeconds, stringBody).catch(console.error);
           return originalSend(body);
         };
         next();
