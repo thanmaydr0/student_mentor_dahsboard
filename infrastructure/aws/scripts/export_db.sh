@@ -19,7 +19,7 @@ echo "Dumping roles..."
 # Supabase cloud restricts dumping roles easily, so we usually just dump data. 
 # We'll dump the schema and data for public and auth schemas.
 
-pg_dump "$SOURCE_DB_URL" \
+"/mnt/c/Program Files/PostgreSQL/18/bin/pg_dump.exe" "$SOURCE_DB_URL" \
   --clean \
   --if-exists \
   --quote-all-identifiers \
@@ -29,7 +29,7 @@ pg_dump "$SOURCE_DB_URL" \
   -f "${OUTPUT_FILE}_schema.sql"
 
 echo "Dumping data..."
-pg_dump "$SOURCE_DB_URL" \
+"/mnt/c/Program Files/PostgreSQL/18/bin/pg_dump.exe" "$SOURCE_DB_URL" \
   --data-only \
   --schema="public" \
   --schema="auth" \

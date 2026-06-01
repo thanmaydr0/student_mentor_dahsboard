@@ -16,3 +16,16 @@ services:
         value: "put_your_supabase_anon_key_here" # Update in Render Dashboard
       - key: VITE_OPENAI_API_KEY
         value: "put_your_openai_api_key_here" # Required for AI features
+
+  - type: web
+    name: edupredict-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm run dev --workspace=apps/api
+    envVars:
+      - key: SUPABASE_URL
+        value: "https://db.teser.in"
+      - key: SUPABASE_SERVICE_KEY
+        value: "put_your_service_key_here"
+      - key: REDIS_URL
+        value: "put_redis_url_here"
